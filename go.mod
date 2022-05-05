@@ -1,4 +1,4 @@
-module e2eframework
+module github.com/spider-io/e2eframework
 
 go 1.18
 

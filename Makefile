@@ -4,7 +4,7 @@ include Makefile.defs
 .PHONY: lint-golang
 lint-golang:
 	$(QUIET) scripts/check-go-fmt.sh
-	$(QUIET) $(GO_VET)  .
+	$(QUIET) $(GO_VET)  ./framework/...
 	$(QUIET) golangci-lint run
 
 
@@ -85,7 +85,7 @@ unitest-tests:
 		--cover --coverprofile=./coverage.out --covermode set  \
 		--json-report unitestreport.json \
 		-randomize-suites -randomize-all --keep-going  --timeout=1h  -p   --slow-spec-threshold=120s \
-		-vv  -r  ./
+		-vv  -r  ./framework
 	$(QUIET) go tool cover -html=./coverage.out -o coverage-all.html
 
 

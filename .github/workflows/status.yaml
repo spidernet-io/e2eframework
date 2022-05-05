@@ -33,8 +33,8 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.3.0
         with:
           auth: ${{ secrets.WELAN_PAT }}
-          gistID:
-          filename:
+          gistID: 2009b7c07bf36b367f0b87e4dda78391
+          filename: e2eframecodeline.json
           label: Code Lines
           message: ${{ env.CODE_LINES }}
           color: lightgrey
@@ -43,12 +43,10 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.3.0
         with:
           auth: ${{ secrets.WELAN_PAT }}
-          gistID:
-          filename:
+          gistID: 5994f78423662cc87600334cfb7e6512
+          filename: e2eframecomment.json
           label: Comments
           message: ${{ env.COMMENT_PERCENTAGE }}%
           valColorRange: ${{ env.COMMENT_PERCENTAGE }}
           maxColorRange: 100
           minColorRange: 0
-
-

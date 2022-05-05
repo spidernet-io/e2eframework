@@ -26,6 +26,7 @@ jobs:
           TOOL_PATH=${{ env.CODESTATUSSCRIPT }}
           CODE_LINES=$(  ${TOOL_PATH} --code-lines )
           COMMENT_PERCENTAGE=$(  ${TOOL_PATH} --comment-percent )
+          ((COMMENT_PERCENTAGE<=0)) && COMMENT_PERCENTAGE=0
           echo "CODE_LINES=${CODE_LINES}" >> $GITHUB_ENV
           echo "COMMENT_PERCENTAGE=${COMMENT_PERCENTAGE}" >> $GITHUB_ENV
 

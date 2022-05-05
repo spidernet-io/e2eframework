@@ -1,6 +1,6 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
-package e2eframework_test
+package framework_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"

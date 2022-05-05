@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	e2e "github.com/spidernet-io/e2eframework"
+	e2e "github.com/spidernet-io/e2eframework/framework"
 )
 
 var _ = Describe("test namespace", Label("namespace"), func() {

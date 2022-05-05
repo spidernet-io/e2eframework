@@ -25,9 +25,7 @@ jobs:
         run: |
           TOOL_PATH=${{ env.CODESTATUSSCRIPT }}
           CODE_LINES=$(  ${TOOL_PATH} --code-lines )
-          COMMENT_PERCENTAGE=$(  ${TOOL_PATH} --comment-percent )
           echo "CODE_LINES=${CODE_LINES}" >> $GITHUB_ENV
-          echo "COMMENT_PERCENTAGE=${COMMENT_PERCENTAGE}" >> $GITHUB_ENV
 
       - name: Create Lines-of-Code-Badge
         uses: schneegans/dynamic-badges-action@v1.3.0
@@ -38,15 +36,3 @@ jobs:
           label: Code Lines
           message: ${{ env.CODE_LINES }}
           color: lightgrey
-
-      - name: Create Comments-Badge
-        uses: schneegans/dynamic-badges-action@v1.3.0
-        with:
-          auth: ${{ secrets.WELAN_PAT }}
-          gistID: 5994f78423662cc87600334cfb7e6512
-          filename: e2eframecomment.json
-          label: Comments
-          message: ${{ env.COMMENT_PERCENTAGE }}%
-          valColorRange: ${{ env.COMMENT_PERCENTAGE }}
-          maxColorRange: 100
-          minColorRange: 0

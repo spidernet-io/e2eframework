@@ -105,7 +105,8 @@ var (
 )
 
 // NewFramework init Framework struct
-func NewFramework(t TestingT) (*Framework, error) {
+// fakeClient for unitest
+func NewFramework(t TestingT, fakeClient ...client.WithWatch) (*Framework, error) {
 
 	if t == nil {
 		return nil, fmt.Errorf("miss TestingT")
@@ -130,31 +131,34 @@ func NewFramework(t TestingT) (*Framework, error) {
 		return nil, fmt.Errorf("internal error, failed to deepcopy")
 	}
 
-	if f.Info.KubeConfigPath == "" {
-		return nil, fmt.Errorf("miss KubeConfig Path")
-	}
-	f.KConfig, err = clientcmd.BuildConfigFromFlags("", f.Info.KubeConfigPath)
-	if err != nil {
-		return nil, fmt.Errorf("BuildConfigFromFlags failed % v", err)
-	}
+	if fakeClient != nil {
+		f.KClient = fakeClient[0]
+	} else {
+		if f.Info.KubeConfigPath == "" {
+			return nil, fmt.Errorf("miss KubeConfig Path")
+		}
+		f.KConfig, err = clientcmd.BuildConfigFromFlags("", f.Info.KubeConfigPath)
+		if err != nil {
+			return nil, fmt.Errorf("BuildConfigFromFlags failed % v", err)
+		}
+		f.KConfig.QPS = Default_k8sClient_QPS
+		f.KConfig.Burst = Default_k8sClient_Burst
 
-	f.KConfig.QPS = Default_k8sClient_QPS
-	f.KConfig.Burst = Default_k8sClient_Burst
+		scheme := runtime.NewScheme()
+		err = corev1.AddToScheme(scheme)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add runtime Scheme : %v", err)
+		}
+		err = apiextensions_v1.AddToScheme(scheme)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add apiextensions_v1 Scheme : %v", err)
+		}
 
-	scheme := runtime.NewScheme()
-	err = corev1.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add runtime Scheme : %v", err)
-	}
-	err = apiextensions_v1.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add apiextensions_v1 Scheme : %v", err)
-	}
-
-	// f.Client, err = client.New(f.kConfig, client.Options{Scheme: scheme})
-	f.KClient, err = client.NewWithWatch(f.KConfig, client.Options{Scheme: scheme})
-	if err != nil {
-		return nil, fmt.Errorf("failed to new clientset: %v", err)
+		// f.Client, err = client.New(f.kConfig, client.Options{Scheme: scheme})
+		f.KClient, err = client.NewWithWatch(f.KConfig, client.Options{Scheme: scheme})
+		if err != nil {
+			return nil, fmt.Errorf("failed to new clientset: %v", err)
+		}
 	}
 
 	f.Config.ApiOperateTimeout = Default_k8sClient_ApiOperateTimeout

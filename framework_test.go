@@ -7,22 +7,29 @@ import (
 	. "github.com/onsi/gomega"
 
 	e2e "github.com/spidernet-io/e2eframework"
+	"os"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("test new Framework", Label("framework"), func() {
+	var kubeConfigFile *os.File
+	var fakeClient client.WithWatch
 
-	DescribeTable("test environment",
-		func(envlist map[string]string, expectedSucceed bool) {
-			_, e := e2e.NewFramework(GinkgoT())
-			if expectedSucceed == true {
-				Expect(e).NotTo(HaveOccurred())
-			} else {
-				Expect(e).To(HaveOccurred())
-			}
-		},
-		Entry("no env", nil, false),
-		Entry("no env", map[string]string{
-			e2e.E2E_CLUSTER_NAME: "testCluster",
-		}, false),
-	)
+	BeforeEach(func() {
+		kubeConfigFile = fakeKubeConfig()
+		fakeEnv(kubeConfigFile.Name())
+		fakeClient = fakeClientSet()
+		Expect(fakeClient).NotTo(BeNil())
+
+		DeferCleanup(func() {
+			os.Remove(kubeConfigFile.Name())
+			clearEnv()
+		})
+	})
+
+	It("create framework", func() {
+		_, e := e2e.NewFramework(GinkgoT(), fakeClient)
+		Expect(e).NotTo(HaveOccurred())
+	})
+
 })

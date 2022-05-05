@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
-	"testing"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -76,11 +75,16 @@ type Framework struct {
 	// cluster info
 	Info ClusterInfo
 
-	t      *testing.T
+	t      TestingT
 	Config FConfig
 }
 
 // -------------------------------------------
+type TestingT interface {
+	Fatalf(format string, args ...interface{})
+	Logf(format string, args ...interface{})
+}
+
 var (
 	Default_k8sClient_QPS   float32 = 200
 	Default_k8sClient_Burst int     = 300
@@ -90,7 +94,7 @@ var (
 )
 
 // NewFramework init Framework struct
-func NewFramework(t *testing.T) *Framework {
+func NewFramework(t TestingT) *Framework {
 
 	if t == nil {
 		return nil
@@ -183,7 +187,7 @@ func (f *Framework) GetResource(key client.ObjectKey, obj client.Object) error {
 
 // ------------- docker exec command to kind node
 
-func initClusterInfo(q *testing.T) {
+func initClusterInfo(q TestingT) {
 
 	for _, v := range envConfigList {
 		t := os.Getenv(v.EnvName)

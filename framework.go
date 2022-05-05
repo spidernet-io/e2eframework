@@ -147,7 +147,9 @@ func NewFramework(t TestingT) *Framework {
 	f.Config.ApiOperateTimeout = Default_k8sClient_ApiOperateTimeout
 	f.Config.ResourceDeleteTimeout = Default_k8sClient_ResourceDeleteTimeout
 
-	f.t.Logf("Framework: %+v \n", f)
+	f.t.Logf("Framework ClusterInfo: %+v \n", f.Info)
+	f.t.Logf("Framework Config: %+v \n", f.Config)
+
 	return f
 }
 

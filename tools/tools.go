@@ -2,9 +2,10 @@ package tools
 
 import (
 	"github.com/asaskevich/govalidator"
-	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"fmt"
+	"time"
 )
 
 func CheckPodIpv4IPReady(pod *corev1.Pod) bool {
@@ -29,4 +30,25 @@ func CheckPodIpv6IPReady(pod *corev1.Pod) bool {
 		}
 	}
 	return false
+}
+
+func RandomName() string {
+	m := time.Now()
+	return fmt.Sprintf("%v%v-%v", m.Minute(), m.Second(), m.Nanosecond())
+}
+
+// simulate Eventually for internal
+func Eventually(f func() bool, timeout time.Duration, interval time.Duration) bool {
+	timeoutAfter := time.After(timeout)
+	for {
+		select {
+		case <-timeoutAfter:
+			return false
+		default:
+		}
+		if f() == true {
+			return true
+		}
+		time.Sleep(interval)
+	}
 }

@@ -173,22 +173,6 @@ func (f *Framework) GetResource(key client.ObjectKey, obj client.Object) error {
 	return f.KClient.Get(ctx3, key, obj)
 }
 
-// ------------- for replicaset , to do
-
-// ------------- for deployment , to do
-
-// ------------- for statefulset , to do
-
-// ------------- for job , to do
-
-// ------------- for daemonset , to do
-
-// ------------- for namespace
-
-// ------------- shutdown node , to do
-
-// ------------- docker exec command to kind node
-
 func initClusterInfo(q TestingT) {
 
 	for _, v := range envConfigList {

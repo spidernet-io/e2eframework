@@ -39,7 +39,7 @@ func (f *Framework) CreatePod(pod *corev1.Pod, opts ...client.CreateOption) erro
 			}
 			return true
 		}
-		if tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) == false {
+		if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
 			return fmt.Errorf("time out to wait a deleting pod")
 		}
 	}

@@ -126,7 +126,7 @@ func NewFramework(t TestingT) (*Framework, error) {
 
 	v := deepcopy.Copy(*clusterInfo)
 	f.Info, ok = v.(ClusterInfo)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("internal error, failed to deepcopy")
 	}
 
@@ -190,7 +190,7 @@ func initClusterInfo() error {
 
 	for _, v := range envConfigList {
 		t := os.Getenv(v.EnvName)
-		if len(t) == 0 && v.Required == true {
+		if len(t) == 0 && v.Required {
 			return fmt.Errorf("error, failed to get ENV %s", v.EnvName)
 		}
 		r := v.Default

@@ -39,7 +39,7 @@ func (f *Framework) CreateNamespace(nsName string, opts ...client.CreateOption) 
 			}
 			return true
 		}
-		if tools.Eventually(r, f.Config.ResourceDeleteTimeout, time.Second) == false {
+		if !tools.Eventually(r, f.Config.ResourceDeleteTimeout, time.Second) {
 			return fmt.Errorf("time out to wait a deleting namespace")
 		}
 	}

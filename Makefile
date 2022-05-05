@@ -4,7 +4,7 @@ include Makefile.defs
 .PHONY: lint-golang
 lint-golang:
 	$(QUIET) scripts/check-go-fmt.sh
-	$(QUIET) $(GO_VET)  ./...
+	$(QUIET) $(GO_VET)  .
 	$(QUIET) golangci-lint run
 
 
@@ -88,3 +88,13 @@ unitest-tests:
 		-vv  -r  ./
 	$(QUIET) go tool cover -html=./coverage.out -o coverage-all.html
 
+
+.PHONY: check_test_label
+check_test_label:
+	@ALL_TEST_FILE=` find  ./  -name "*_test.go" -not -path "./vendor/*" ` ; FAIL="false" ; \
+		for ITEM in $$ALL_TEST_FILE ; do \
+			[[ "$$ITEM" == *_suite_test.go ]] && continue  ; \
+			! grep 'Label(' $${ITEM} &>/dev/null && FAIL="true" && echo "error, miss Label in $${ITEM}" ; \
+		done ; \
+		[ "$$FAIL" == "true" ] && echo "error, label check fail" && exit 1 ; \
+		echo "each test.go is labeled right"

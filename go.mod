@@ -1,8 +1,9 @@
-module github.com/spider-io/e2eframework
+module github.com/spidernet-io/e2eframework
 
 go 1.18
 
 require (
+	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0

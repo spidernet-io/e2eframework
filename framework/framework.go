@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"fmt"
+	wbv1alpha1 "github.com/k8snetworkplumbingwg/whereabouts/pkg/api/v1alpha1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"os"
@@ -153,7 +155,14 @@ func NewFramework(t TestingT, fakeClient ...client.WithWatch) (*Framework, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to add apiextensions_v1 Scheme : %v", err)
 		}
-
+		err = batchv1.AddToScheme(scheme)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add batchv1 Scheme : %v", err)
+		}
+		err = wbv1alpha1.AddToScheme(scheme)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add wbv1alpha1 Scheme : %v", err)
+		}
 		// f.Client, err = client.New(f.kConfig, client.Options{Scheme: scheme})
 		f.KClient, err = client.NewWithWatch(f.KConfig, client.Options{Scheme: scheme})
 		if err != nil {

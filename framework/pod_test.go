@@ -3,6 +3,9 @@
 package framework_test
 
 import (
+	"context"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -46,9 +49,24 @@ var _ = Describe("test pod", Label("pod"), func() {
 		podName := "testpod"
 		namespace := "default"
 
-		pod := generateExamplePodYaml(podName, namespace)
-		e := f.CreatePod(pod)
-		Expect(e).NotTo(HaveOccurred())
+		go func() {
+			defer GinkgoRecover()
+			// notice: WaitPodStarted use watch , but for the fake clientset,
+			// the watch have started before the pod ready, or else the watch will miss the event
+			// so we create the pod after WaitPodStarted
+			// in the real environment, this issue does not exist
+			time.Sleep(2 * time.Second)
+			pod1 := generateExamplePodYaml(podName, namespace)
+			e2 := f.CreatePod(pod1)
+			Expect(e2).NotTo(HaveOccurred())
+			GinkgoWriter.Printf("finish creating pod \n")
+		}()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		pod, e1 := f.WaitPodStarted(podName, namespace, ctx)
+		Expect(e1).NotTo(HaveOccurred())
+		Expect(pod).NotTo(BeNil())
 
 		getPod, e1 := f.GetPod(podName, namespace)
 		Expect(e1).NotTo(HaveOccurred())
@@ -58,7 +76,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e2).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("len of pods: %v", len(pods.Items))
 
-		e = f.DeletePod(podName, namespace)
+		e := f.DeletePod(podName, namespace)
 		Expect(e).NotTo(HaveOccurred())
 
 	})

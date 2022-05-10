@@ -10,6 +10,8 @@ import (
 
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	"io/ioutil"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +32,10 @@ func fakeClientSet() client.WithWatch {
 	err := corev1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = apiextensions_v1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = batchv1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = appsv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	return fake.NewClientBuilder().WithScheme(scheme).Build()
 }

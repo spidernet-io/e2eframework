@@ -9,6 +9,7 @@ import (
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func generateExamplePodYaml(podName, namespace string) *corev1.Pod {
@@ -52,6 +53,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		getPod, e1 := f.GetPod(podName, namespace)
 		Expect(e1).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
+
+		pods, e2 := f.GetPodList(&client.ListOptions{Namespace: namespace})
+		Expect(e2).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("len of pods: %v", len(pods.Items))
 
 		e = f.DeletePod(podName, namespace)
 		Expect(e).NotTo(HaveOccurred())

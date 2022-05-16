@@ -3,6 +3,7 @@
 package framework_test
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -30,6 +31,8 @@ func fakeClientSet() client.WithWatch {
 	err := corev1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = apiextensions_v1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = appsv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	return fake.NewClientBuilder().WithScheme(scheme).Build()
 }

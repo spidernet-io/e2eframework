@@ -5,19 +5,20 @@ package framework
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/mohae/deepcopy"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
-	"time"
-
-	"fmt"
-	corev1 "k8s.io/api/core/v1"
-	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"os"
-	"strconv"
 )
 
 // -----------------------------
@@ -152,6 +153,10 @@ func NewFramework(t TestingT, fakeClient ...client.WithWatch) (*Framework, error
 		err = apiextensions_v1.AddToScheme(scheme)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add apiextensions_v1 Scheme : %v", err)
+		}
+		err = appsv1.AddToScheme(scheme)
+		if nil != err {
+			return nil, fmt.Errorf("failed to add appsv1 Scheme : %v", err)
 		}
 
 		// f.Client, err = client.New(f.kConfig, client.Options{Scheme: scheme})

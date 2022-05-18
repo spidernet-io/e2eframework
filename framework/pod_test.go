@@ -4,10 +4,10 @@ package framework_test
 
 import (
 	"context"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"time"
 
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	corev1 "k8s.io/api/core/v1"

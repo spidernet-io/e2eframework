@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	. "github.com/onsi/gomega"
 	"github.com/spidernet-io/e2eframework/tools"
 	appsv1 "k8s.io/api/apps/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -48,8 +47,10 @@ func (f *Framework) CreateDeployment(dpm *appsv1.Deployment, opts ...client.Crea
 }
 
 func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.DeleteOption) error {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
+	// namespace is empty, get default namespace
+	if name == "" {
+		return fmt.Errorf("the deployment name %v not to be empty", name)
+	}
 	pod := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -60,8 +61,11 @@ func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.Dele
 }
 
 func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, error) {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
+
+	// namespace is empty, get default namespace
+	if name == "" {
+		return nil, fmt.Errorf("deployment name not to be empty")
+	}
 
 	dpm := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -79,8 +83,11 @@ func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, e
 }
 
 func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Context) (*appsv1.Deployment, error) {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
+
+	// namespace is empty, get default namespace
+	if name == "" {
+		return nil, fmt.Errorf("deploymnet name not to be empty")
+	}
 
 	l := &client.ListOptions{
 		Namespace:     namespace,

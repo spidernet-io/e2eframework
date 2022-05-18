@@ -202,9 +202,15 @@ func (f *Framework) GetResource(key client.ObjectKey, obj client.Object) error {
 }
 
 func (f *Framework) ListResource(list client.ObjectList, opts ...client.ListOption) error {
-	ctx3, cancel3 := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
-	defer cancel3()
-	return f.KClient.List(ctx3, list, opts...)
+	ctx4, cancel4 := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
+	defer cancel4()
+	return f.KClient.List(ctx4, list, opts...)
+}
+
+func (f *Framework) UpdateResource(obj client.Object, opts ...client.UpdateOption) error {
+	ctx5, cancel5 := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
+	defer cancel5()
+	return f.KClient.Update(ctx5, obj, opts...)
 }
 
 func initClusterInfo() error {

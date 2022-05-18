@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	. "github.com/onsi/gomega"
 	"github.com/spidernet-io/e2eframework/tools"
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -45,13 +44,15 @@ func (f *Framework) CreatePod(pod *corev1.Pod, opts ...client.CreateOption) erro
 			return fmt.Errorf("time out to wait a deleting pod")
 		}
 	}
-
 	return f.CreateResource(pod, opts...)
 }
 
 func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOption) error {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
+	// namespace is empty, get default namespace
+	if name == "" {
+		return fmt.Errorf("pod name not to be empty")
+	}
+
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -62,9 +63,10 @@ func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOptio
 }
 
 func (f *Framework) GetPod(name, namespace string) (*corev1.Pod, error) {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
-
+	// namespace is empty, get default namespace
+	if name == "" {
+		return nil, fmt.Errorf("pod name not to be empty")
+	}
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -90,8 +92,10 @@ func (f *Framework) GetPodList(opts ...client.ListOption) (*corev1.PodList, erro
 }
 
 func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) (*corev1.Pod, error) {
-	Expect(name).NotTo(BeEmpty())
-	Expect(namespace).NotTo(BeEmpty())
+	// namespace is empty, get default namespace
+	if name == "" {
+		return nil, fmt.Errorf("pod name not to be empty")
+	}
 
 	// refer to https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/client/watch_test.go
 	l := &client.ListOptions{

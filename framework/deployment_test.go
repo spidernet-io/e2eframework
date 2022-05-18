@@ -95,9 +95,17 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		_, err3 := f.WaitDeploymentReady(dpmName, namespace, ctx)
 		Expect(err3).NotTo(HaveOccurred())
 
+		// UT cover deployment name to be empty
+		_, err3 = f.WaitDeploymentReady("", namespace, ctx)
+		Expect(err3).To(HaveOccurred())
+
 		getDpm, err4 := f.GetDeploymnet(dpmName, namespace)
 		Expect(err4).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get deployment: %+v \n", getDpm)
+
+		// UT cover deployment name to be empty
+		_, err4 = f.GetDeploymnet("", namespace)
+		Expect(err4).To(HaveOccurred())
 
 		// UT cover deployment name does not exist
 		_, err4 = f.GetDeploymnet(errName, namespace)
@@ -106,6 +114,10 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 
 		err5 := f.DeleteDeployment(dpmName, namespace)
 		Expect(err5).NotTo(HaveOccurred())
+
+		// UT cover delete deployment name to be empty
+		err5 = f.DeleteDeployment("", namespace)
+		Expect(err5).To(HaveOccurred())
 	})
 
 })

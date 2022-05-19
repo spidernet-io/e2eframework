@@ -8,12 +8,14 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	e2e "github.com/spidernet-io/e2eframework/framework"
 	"io/ioutil"
+	"os"
+
+	e2e "github.com/spidernet-io/e2eframework/framework"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -28,6 +30,10 @@ func TestE2eframework(t *testing.T) {
 func fakeClientSet() client.WithWatch {
 	scheme := runtime.NewScheme()
 	err := corev1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = apiextensions_v1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = appsv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = apiextensions_v1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())

@@ -4,9 +4,11 @@ package framework_test
 
 import (
 	"context"
+
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"time"
 
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	corev1 "k8s.io/api/core/v1"
@@ -67,16 +69,34 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e1).NotTo(HaveOccurred())
 		Expect(pod).NotTo(BeNil())
 
-		getPod, e1 := f.GetPod(podName, namespace)
-		Expect(e1).NotTo(HaveOccurred())
+		// UT cover pod name to be empty
+		_, e1 = f.WaitPodStarted("", namespace, ctx)
+		Expect(e1).To(HaveOccurred())
+		_, e1 = f.WaitPodStarted(podName, "", ctx)
+		Expect(e1).To(HaveOccurred())
+
+		getPod, e3 := f.GetPod(podName, namespace)
+		Expect(e3).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
 
-		pods, e2 := f.GetPodList(&client.ListOptions{Namespace: namespace})
-		Expect(e2).NotTo(HaveOccurred())
+		// UT cover pod name/namespace to be empty
+		_, e3 = f.GetPod("", namespace)
+		Expect(e3).To(HaveOccurred())
+		_, e3 = f.GetPod(podName, "")
+		Expect(e3).To(HaveOccurred())
+
+		pods, e4 := f.GetPodList(&client.ListOptions{Namespace: namespace})
+		Expect(e4).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("len of pods: %v", len(pods.Items))
 
-		e := f.DeletePod(podName, namespace)
-		Expect(e).NotTo(HaveOccurred())
+		e5 := f.DeletePod(podName, namespace)
+		Expect(e5).NotTo(HaveOccurred())
+
+		// UT cover delete pod name/namespace to be empty
+		e5 = f.DeletePod("", namespace)
+		Expect(e5).To(HaveOccurred())
+		e5 = f.DeletePod(podName, "")
+		Expect(e5).To(HaveOccurred())
 
 	})
 

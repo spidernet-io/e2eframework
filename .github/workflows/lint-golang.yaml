@@ -112,12 +112,20 @@ jobs:
         run: |
           make lint-golang
 
+      - name: Check Gomega Use
+        id: gomega
+        continue-on-error: true
+        run: |
+          scripts/checkGo.sh
+
       - name: Result
         run: |
           result=${{ steps.golangci_lint.outcome }}
           [ "${result}"x == "failure"x ] && echo "step golangci_lint failed" && exit 1
           result=${{ steps.other.outcome }}
-          [ "${result}"x == "failure"x ] && echo "step gokart failed" && exit 3
+          [ "${result}"x == "failure"x ] && echo "step gokart failed" && exit 2
+          result=${{ steps.gomega.outcome }}
+          [ "${result}"x == "failure"x ] && echo "step Gomega failed" && exit 3
           echo "all succeed"
           exit 0
 

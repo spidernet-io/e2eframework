@@ -2,7 +2,7 @@
 /.github/ @weizhoublue
 /example/ @weizhoublue
 /scripts/ @weizhoublue
-/tools/ @weizhoublue
+/tools/ @weizhoublue @ty-dc
 /vendor/ @weizhoublue
 /.gitignore @weizhoublue
 /.golangci.yaml @weizhoublue
@@ -14,4 +14,4 @@
 /README.md @weizhoublue
 /go.sum @weizhoublue
 /go.mod @weizhoublue
-/framework/ @weizhoublue
+/framework/ @weizhoublue @ty-dc

@@ -4,6 +4,7 @@ package framework_test
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -58,18 +59,18 @@ func GenerateExampleDeploymentYaml(dpmName, namespace string, replica, readyRepl
 
 var _ = Describe("test deployment", Label("deployment"), func() {
 	var f *e2e.Framework
-
+	var wg sync.WaitGroup
 	BeforeEach(func() {
 		f = fakeFramework()
 	})
 
 	It("operate deployment", func() {
 		dpmName := "testDpm"
-		errName := "errDpm"
 		namespace := "default"
 		replica := int32(3)
 		readyReplica := int32(3)
-
+		scaleReplicas := int32(2)
+		wg.Add(1)
 		go func() {
 			defer GinkgoRecover()
 			// notice: WaitPodStarted use watch , but for the fake clientset,
@@ -78,52 +79,91 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 			// in the real environment, this issue does not exist
 			time.Sleep(2 * time.Second)
 			dpm := GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
+
 			err1 := f.CreateDeployment(dpm)
 			Expect(err1).NotTo(HaveOccurred())
 			GinkgoWriter.Printf("finish creating deployment \n")
 
-			// UT cover create the same deployment name
-			dpm = GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
-			err2 := f.CreateDeployment(dpm)
-			Expect(err2).To(HaveOccurred())
-			GinkgoWriter.Printf("failed to create , a same deployment default/testDpm exists \n")
+			wg.Done()
 		}()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		// wait deployment ready
+		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel1()
+		dpm, err2 := f.WaitDeploymentReady(dpmName, namespace, ctx1)
+		Expect(err2).NotTo(HaveOccurred())
+		Expect(dpm).NotTo(BeNil())
 
-		defer cancel()
-		_, err3 := f.WaitDeploymentReady(dpmName, namespace, ctx)
+		wg.Wait()
+
+		// get deployment
+		getDpm1, err3 := f.GetDeploymnet(dpmName, namespace)
 		Expect(err3).NotTo(HaveOccurred())
+		Expect(getDpm1).NotTo(BeNil())
 
-		// UT cover deployment name/namespace to be empty
-		_, err3 = f.WaitDeploymentReady("", namespace, ctx)
-		Expect(err3).To(HaveOccurred())
-		_, err3 = f.WaitDeploymentReady(dpmName, "", ctx)
-		Expect(err3).To(HaveOccurred())
-
-		getDpm, err4 := f.GetDeploymnet(dpmName, namespace)
+		// get deployment pod list
+		GinkgoWriter.Println("get deployment pod list")
+		podList, err4 := f.GetDeploymentPodList(dpm)
+		Expect(podList).NotTo(BeNil())
 		Expect(err4).NotTo(HaveOccurred())
-		GinkgoWriter.Printf("get deployment: %+v \n", getDpm)
 
-		// UT cover deployment name/namespace to be empty
-		_, err4 = f.GetDeploymnet("", namespace)
-		Expect(err4).To(HaveOccurred())
-		_, err4 = f.GetDeploymnet(dpmName, "")
-		Expect(err4).To(HaveOccurred())
-
-		// UT cover deployment name does not exist
-		_, err4 = f.GetDeploymnet(errName, namespace)
-		Expect(err4).To(HaveOccurred())
-		GinkgoWriter.Printf("The unit test coverage name:%v does not exist", errName)
-
-		err5 := f.DeleteDeployment(dpmName, namespace)
+		// scale deployment
+		GinkgoWriter.Println("scale deployment")
+		getDpm2, err5 := f.ScaleDeployment(dpm, scaleReplicas)
+		Expect(getDpm2).NotTo(BeNil())
 		Expect(err5).NotTo(HaveOccurred())
 
-		// UT cover delete deployment name/namespace to be empty
-		err5 = f.DeleteDeployment("", namespace)
-		Expect(err5).To(HaveOccurred())
-		err5 = f.DeleteDeployment(dpmName, "")
-		Expect(err5).To(HaveOccurred())
+		// create a deployment with a same name
+		GinkgoWriter.Println("create a deployment with a same name")
+		err6 := f.CreateDeployment(dpm)
+		Expect(err6).To(HaveOccurred())
+		GinkgoWriter.Printf("failed creating a deployment with a same name: %v\n", dpmName)
+
+		// delete deployment
+		GinkgoWriter.Printf("delete deployment %v \n", dpmName)
+		err7 := f.DeleteDeployment(dpmName, namespace)
+		Expect(err7).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("%v deleted successfully \n", dpmName)
 	})
 
+	It("counter example with wrong input", func() {
+		dpmName := "testDpm"
+		namespace := "default"
+		scaleReplicas := int32(2)
+		var dpmNil *appsv1.Deployment = nil
+
+		// failed wait deployment ready with wrong input name/namespace to be empty
+		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel1()
+		getdpm1, err1 := f.WaitDeploymentReady("", namespace, ctx1)
+		Expect(getdpm1).To(BeNil())
+		Expect(err1).To(HaveOccurred())
+		getdpm2, err2 := f.WaitDeploymentReady(dpmName, "", ctx1)
+		Expect(getdpm2).To(BeNil())
+		Expect(err2).To(HaveOccurred())
+
+		// UT cover get deployment name/namespace input to be empty
+		getdpm3, err3 := f.GetDeploymnet("", namespace)
+		Expect(getdpm3).To(BeNil())
+		Expect(err3).To(HaveOccurred())
+		getdpm3, err3 = f.GetDeploymnet(dpmName, "")
+		Expect(getdpm3).To(BeNil())
+		Expect(err3).To(HaveOccurred())
+
+		// UT cover get deployment pod list input to be empty
+		getdpm4, err4 := f.GetDeploymentPodList(dpmNil)
+		Expect(getdpm4).To(BeNil())
+		Expect(err4).To(HaveOccurred())
+
+		// UT cover scale deployment input to be empty
+		getdpm5, err5 := f.ScaleDeployment(dpmNil, scaleReplicas)
+		Expect(getdpm5).To(BeNil())
+		Expect(err5).To(HaveOccurred())
+
+		// UT cover delete deployment name/namespace input to be empty
+		err6 := f.DeleteDeployment("", namespace)
+		Expect(err6).To(HaveOccurred())
+		err6 = f.DeleteDeployment(dpmName, "")
+		Expect(err6).To(HaveOccurred())
+	})
 })

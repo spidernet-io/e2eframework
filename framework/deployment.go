@@ -9,10 +9,13 @@ import (
 
 	"github.com/spidernet-io/e2eframework/tools"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -90,6 +93,37 @@ func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, e
 		return nil, e
 	}
 	return existing, e
+}
+
+func (f *Framework) GetDeploymentPodList(dpm *appsv1.Deployment) (*corev1.PodList, error) {
+
+	if dpm == nil {
+		return nil, fmt.Errorf("dpm cannot be nil")
+	}
+
+	pods := &corev1.PodList{}
+	opts := []client.ListOption{
+		client.MatchingLabelsSelector{
+			Selector: labels.SelectorFromSet(dpm.Spec.Selector.MatchLabels),
+		},
+	}
+	e := f.ListResource(pods, opts...)
+	if e != nil {
+		return nil, e
+	}
+	return pods, nil
+}
+
+func (f *Framework) ScaleDeployment(dpm *appsv1.Deployment, replicas int32) (*appsv1.Deployment, error) {
+	if dpm == nil {
+		return nil, fmt.Errorf("deployment cannot be nil")
+	}
+	dpm.Spec.Replicas = pointer.Int32(replicas)
+	err := f.UpdateResource(dpm)
+	if err != nil {
+		return nil, err
+	}
+	return dpm, nil
 }
 
 func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Context) (*appsv1.Deployment, error) {

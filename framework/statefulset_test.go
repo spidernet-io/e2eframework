@@ -50,6 +50,7 @@ func generateExampleStatefulSetYaml(stsName, namespace string, replica int32) *a
 				},
 			},
 		},
+		//the fake clientset will not schedule statefulSet replicaset,so mock the number
 		Status: appsv1.StatefulSetStatus{
 			Replicas:      replica,
 			ReadyReplicas: replica,

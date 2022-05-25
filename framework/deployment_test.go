@@ -50,6 +50,7 @@ func GenerateExampleDeploymentYaml(dpmName, namespace string, replica, readyRepl
 				},
 			},
 		},
+		//the fake clientset will not schedule deployment replicaset,so mock the number
 		Status: appsv1.DeploymentStatus{
 			ReadyReplicas: readyReplica,
 			Replicas:      replica,
@@ -124,13 +125,24 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		err7 := f.DeleteDeployment(dpmName, namespace)
 		Expect(err7).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("%v deleted successfully \n", dpmName)
+
+		// wait deployment replicas until delete Complete
+		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel2()
+		GinkgoWriter.Printf("wait deployment %v replicas until delete Complete \n", dpmName)
+		err8 := f.WaitDeleteUntilComplete(namespace, dpm.Spec.Selector.MatchLabels, ctx2)
+		Expect(err8).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("%v all replicas deleted successfully \n", dpmName)
 	})
 
 	It("counter example with wrong input", func() {
 		dpmName := "testDpm"
 		namespace := "default"
+		replica := int32(3)
+		readyReplica := int32(3)
 		scaleReplicas := int32(2)
 		var dpmNil *appsv1.Deployment = nil
+		dpm := GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
 
 		// failed wait deployment ready with wrong input name/namespace to be empty
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
@@ -165,5 +177,11 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err6).To(HaveOccurred())
 		err6 = f.DeleteDeployment(dpmName, "")
 		Expect(err6).To(HaveOccurred())
+
+		// UT cover wait delete until complete with wrong input
+		err8 := f.WaitDeleteUntilComplete("", dpm.Spec.Selector.MatchLabels, ctx1)
+		Expect(err8).To(HaveOccurred())
+		err8 = f.WaitDeleteUntilComplete(namespace, nil, ctx1)
+		Expect(err8).To(HaveOccurred())
 	})
 })

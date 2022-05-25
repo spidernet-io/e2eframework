@@ -50,9 +50,9 @@ func (f *Framework) CreatePod(pod *corev1.Pod, opts ...client.CreateOption) erro
 func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOption) error {
 
 	if name == "" {
-		return fmt.Errorf("the pod name %v not to be empty", name)
+		return fmt.Errorf("the pod name  cannot to be empty string")
 	} else if namespace == "" {
-		return fmt.Errorf("the pod namespace %v not to be empty", namespace)
+		return fmt.Errorf("the namespace cannot to be empty string")
 	}
 
 	pod := &corev1.Pod{
@@ -67,9 +67,9 @@ func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOptio
 func (f *Framework) GetPod(name, namespace string) (*corev1.Pod, error) {
 
 	if name == "" {
-		return nil, fmt.Errorf("the pod name %v not to be empty", name)
+		return nil, fmt.Errorf("the pod name not to be empty string")
 	} else if namespace == "" {
-		return nil, fmt.Errorf("the pod namespace %v not to be empty", namespace)
+		return nil, fmt.Errorf("the namespace not to be empty string")
 	}
 
 	pod := &corev1.Pod{
@@ -97,10 +97,11 @@ func (f *Framework) GetPodList(opts ...client.ListOption) (*corev1.PodList, erro
 }
 
 func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) (*corev1.Pod, error) {
+
 	if name == "" {
-		return nil, fmt.Errorf("the pod name %v not to be empty", name)
+		return nil, fmt.Errorf("the pod name cannot be empty string")
 	} else if namespace == "" {
-		return nil, fmt.Errorf("the pod namespace %v not to be empty", namespace)
+		return nil, fmt.Errorf("the namespace cannot to be empty string")
 	}
 
 	// refer to https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/client/watch_test.go
@@ -147,6 +148,35 @@ func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) 
 			}
 		case <-ctx.Done():
 			return nil, fmt.Errorf("ctx timeout ")
+		}
+	}
+}
+
+func (f *Framework) WaitDeleteUntilComplete(namespace string, label map[string]string, ctx context.Context) error {
+	// Query all pods corresponding to the label
+	// Delete the resource until the query is empty
+
+	if namespace == "" {
+		return fmt.Errorf("the namespace cannot to be empty string")
+	} else if label == nil {
+		return fmt.Errorf("the label cannot be nil")
+	}
+
+	opts := []client.ListOption{
+		client.InNamespace(namespace),
+		client.MatchingLabels(label),
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("ctx timeout ")
+		default:
+			podlist, err := f.GetPodList(opts...)
+			if err != nil {
+				return err
+			} else if len(podlist.Items) == 0 {
+				return nil
+			}
 		}
 	}
 }

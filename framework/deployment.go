@@ -50,17 +50,11 @@ func (f *Framework) CreateDeployment(dpm *appsv1.Deployment, opts ...client.Crea
 }
 
 func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.DeleteOption) error {
-	// switch {
-	// case name == "":
-	// 	return fmt.Errorf("the deployment name %v not to be empty", name)
-	// case namespace == "":
-	// 	return fmt.Errorf("the deployment namespace %v not to be empty", namespace)
-	// }
 
 	if name == "" {
-		return fmt.Errorf("the deployment name %v not to be empty", name)
+		return fmt.Errorf("the deployment name cannot to be empty")
 	} else if namespace == "" {
-		return fmt.Errorf("the deployment namespace %v not to be empty", namespace)
+		return fmt.Errorf("the namespace cannot to be empty")
 	}
 
 	pod := &appsv1.Deployment{
@@ -75,9 +69,9 @@ func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.Dele
 func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, error) {
 
 	if name == "" {
-		return nil, fmt.Errorf("the deployment name %v not to be empty", name)
+		return nil, fmt.Errorf("the deployment name cannot to be empty")
 	} else if namespace == "" {
-		return nil, fmt.Errorf("the deployment namespace %v not to be empty", namespace)
+		return nil, fmt.Errorf("the namespace cannot to be empty")
 	}
 
 	dpm := &appsv1.Deployment{
@@ -129,9 +123,9 @@ func (f *Framework) ScaleDeployment(dpm *appsv1.Deployment, replicas int32) (*ap
 func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Context) (*appsv1.Deployment, error) {
 
 	if name == "" {
-		return nil, fmt.Errorf("the deployment name %v not to be empty", name)
+		return nil, fmt.Errorf("the deployment name not to be empty")
 	} else if namespace == "" {
-		return nil, fmt.Errorf("the deployment namespace %v not to be empty", namespace)
+		return nil, fmt.Errorf("the namespace not to be empty")
 	}
 
 	l := &client.ListOptions{

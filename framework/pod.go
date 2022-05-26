@@ -49,10 +49,8 @@ func (f *Framework) CreatePod(pod *corev1.Pod, opts ...client.CreateOption) erro
 
 func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOption) error {
 
-	if name == "" {
-		return fmt.Errorf("the pod name %v not to be empty", name)
-	} else if namespace == "" {
-		return fmt.Errorf("the pod namespace %v not to be empty", namespace)
+	if name == "" || namespace == "" {
+		return ErrWrongInput
 	}
 
 	pod := &corev1.Pod{
@@ -66,10 +64,8 @@ func (f *Framework) DeletePod(name, namespace string, opts ...client.DeleteOptio
 
 func (f *Framework) GetPod(name, namespace string) (*corev1.Pod, error) {
 
-	if name == "" {
-		return nil, fmt.Errorf("the pod name %v not to be empty", name)
-	} else if namespace == "" {
-		return nil, fmt.Errorf("the pod namespace %v not to be empty", namespace)
+	if name == "" || namespace == "" {
+		return nil, ErrWrongInput
 	}
 
 	pod := &corev1.Pod{
@@ -97,10 +93,9 @@ func (f *Framework) GetPodList(opts ...client.ListOption) (*corev1.PodList, erro
 }
 
 func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) (*corev1.Pod, error) {
-	if name == "" {
-		return nil, fmt.Errorf("the pod name %v not to be empty", name)
-	} else if namespace == "" {
-		return nil, fmt.Errorf("the pod namespace %v not to be empty", namespace)
+
+	if name == "" || namespace == "" {
+		return nil, ErrWrongInput
 	}
 
 	// refer to https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/client/watch_test.go
@@ -146,7 +141,55 @@ func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) 
 				}
 			}
 		case <-ctx.Done():
-			return nil, fmt.Errorf("ctx timeout ")
+			return nil, ErrTimeOut
 		}
 	}
+}
+
+func (f *Framework) WaitDeleteUntilComplete(namespace string, label map[string]string, ctx context.Context) error {
+	// Query all pods corresponding to the label
+	// Delete the resource until the query is empty
+
+	if namespace == "" || label == nil {
+		return ErrWrongInput
+	}
+
+	opts := []client.ListOption{
+		client.InNamespace(namespace),
+		client.MatchingLabels(label),
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return ErrTimeOut
+		default:
+			podlist, err := f.GetPodList(opts...)
+			if err != nil {
+				return err
+			} else if len(podlist.Items) == 0 {
+				return nil
+			}
+		}
+	}
+}
+
+func (f *Framework) CheckPodListIpReady(podlist *corev1.PodList) error {
+
+	for i := 0; i < len(podlist.Items); i++ {
+		if podlist.Items[i].Status.PodIPs == nil {
+			return fmt.Errorf("pod %v failed to assign ip", podlist.Items[i].Name)
+		}
+		f.t.Logf("pod %v ips: %+v \n", podlist.Items[i].Name, podlist.Items[i].Status.PodIPs)
+
+		if !f.Info.IpV4Enabled || !tools.CheckPodIpv4IPReady(&podlist.Items[i]) {
+			return fmt.Errorf("pod %v failed to get ipv4 ip", podlist.Items[i].Name)
+		}
+		f.t.Logf("succeeded to check pod %v ipv4 ip \n", podlist.Items[i].Name)
+
+		if !f.Info.IpV6Enabled || !tools.CheckPodIpv6IPReady(&podlist.Items[i]) {
+			return fmt.Errorf("pod %v failed to get ipv6 ip", podlist.Items[i].Name)
+		}
+		f.t.Logf("succeeded to check pod %v ipv6 ip \n", podlist.Items[i].Name)
+	}
+	return nil
 }

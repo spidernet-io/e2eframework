@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/spidernet-io/e2eframework/tools"
-	appsv1 "k8s.io/api/apps/v1"
+
+	//appsv1beta2 "k8s.io/api/apps/v1beta2"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,64 +20,66 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (f *Framework) CreateDaemonSet(ds *appsv1.DaemonSet, opts ...client.CreateOption) error {
+func (f *Framework) CreateJob(jb *batchv1.Job, opts ...client.CreateOption) error {
+
 	// try to wait for finish last deleting
-	fake := &appsv1.DaemonSet{
+	fake := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: ds.ObjectMeta.Namespace,
-			Name:      ds.ObjectMeta.Name,
+			Namespace: jb.ObjectMeta.Namespace,
+			Name:      jb.ObjectMeta.Name,
 		},
 	}
 	key := client.ObjectKeyFromObject(fake)
-	existing := &appsv1.DaemonSet{}
+	existing := &batchv1.Job{}
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same DaemonSet %v/%v exist", ds.ObjectMeta.Namespace, ds.ObjectMeta.Name)
+		return fmt.Errorf("failed to create , a same Job %v/%v exist", jb.ObjectMeta.Namespace, jb.ObjectMeta.Name)
 	}
 	t := func() bool {
-		existing := &appsv1.DaemonSet{}
+		existing := &batchv1.Job{}
 		e := f.GetResource(key, existing)
 		b := api_errors.IsNotFound(e)
 		if !b {
-			f.t.Logf("waiting for a same DaemonSet %v/%v to finish deleting \n", ds.ObjectMeta.Namespace, ds.ObjectMeta.Name)
+			f.t.Logf("waiting for a same Job %v/%v to finish deleting \n", jb.ObjectMeta.Namespace, jb.ObjectMeta.Name)
 			return false
 		}
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return fmt.Errorf("time out to wait a deleting DaemonSet")
+		return fmt.Errorf("time out to wait a deleting Job")
 	}
 
-	return f.CreateResource(ds, opts...)
+	return f.CreateResource(jb, opts...)
 }
 
-func (f *Framework) DeleteDaemonSet(name, namespace string, opts ...client.DeleteOption) error {
-
+func (f *Framework) DeleteJob(name, namespace string, opts ...client.DeleteOption) error {
 	if name == "" || namespace == "" {
 		return ErrWrongInput
+
 	}
-	ds := &appsv1.DaemonSet{
+
+	jb := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 		},
 	}
-	return f.DeleteResource(ds, opts...)
+	return f.DeleteResource(jb, opts...)
 }
 
-func (f *Framework) GetDaemonSet(name, namespace string) (*appsv1.DaemonSet, error) {
-
+func (f *Framework) GetJob(name, namespace string) (*batchv1.Job, error) {
 	if name == "" || namespace == "" {
 		return nil, ErrWrongInput
 	}
-	ds := &appsv1.DaemonSet{
+
+	jb := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 		},
 	}
-	key := client.ObjectKeyFromObject(ds)
-	existing := &appsv1.DaemonSet{}
+	key := client.ObjectKeyFromObject(jb)
+	existing := &batchv1.Job{}
 	e := f.GetResource(key, existing)
 	if e != nil {
 		return nil, e
@@ -83,16 +87,23 @@ func (f *Framework) GetDaemonSet(name, namespace string) (*appsv1.DaemonSet, err
 	return existing, e
 }
 
-func (f *Framework) GetDaemonSetPodList(ds *appsv1.DaemonSet) (*corev1.PodList, error) {
-	if ds == nil {
+func (f *Framework) GetJobPodList(jb *batchv1.Job) (*corev1.PodList, error) {
+	if jb == nil {
 		return nil, ErrWrongInput
 	}
+
 	pods := &corev1.PodList{}
 	ops := []client.ListOption{
+
+		// 	client.MatchingLabels(map[string]string{
+		// 	"app": jdName,
+		// }),
+
 		client.MatchingLabelsSelector{
-			Selector: labels.SelectorFromSet(ds.Spec.Selector.MatchLabels),
+			Selector: labels.SelectorFromSet(jb.Spec.Selector.MatchLabels),
 		},
 	}
+
 	e := f.ListResource(pods, ops...)
 	if e != nil {
 		return nil, e
@@ -100,8 +111,7 @@ func (f *Framework) GetDaemonSetPodList(ds *appsv1.DaemonSet) (*corev1.PodList, 
 	return pods, nil
 }
 
-func (f *Framework) WaitDaemonSetReady(name, namespace string, ctx context.Context) (*appsv1.DaemonSet, error) {
-
+func (f *Framework) WaitJobReady(name, namespace string, ctx context.Context) (*batchv1.Job, error) {
 	if name == "" || namespace == "" {
 		return nil, ErrWrongInput
 	}
@@ -110,7 +120,8 @@ func (f *Framework) WaitDaemonSetReady(name, namespace string, ctx context.Conte
 		Namespace:     namespace,
 		FieldSelector: fields.OneTermEqualSelector("metadata.name", name),
 	}
-	watchInterface, err := f.KClient.Watch(ctx, &appsv1.DaemonSetList{}, l)
+	watchInterface, err := f.KClient.Watch(ctx, &batchv1.JobList{}, l)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to Watch: %v", err)
 	}
@@ -118,36 +129,32 @@ func (f *Framework) WaitDaemonSetReady(name, namespace string, ctx context.Conte
 
 	for {
 		select {
-		// if ds not exist , got no event
+		// if jb not exist , got no event
 		case event, ok := <-watchInterface.ResultChan():
 			if !ok {
-				return nil, fmt.Errorf("channel is closed ")
+				return nil, ErrWrongInput
 			}
-			f.t.Logf(" ds %v/%v %v event \n", namespace, name, event.Type)
+			f.t.Logf(" jb %v/%v %v event \n", namespace, name, event.Type)
 
-			// Added    EventType = "ADDED"
-			// Modified EventType = "MODIFIED"
-			// Deleted  EventType = "DELETED"
-			// Bookmark EventType = "BOOKMARK"
-			// Error    EventType = "ERROR"
 			switch event.Type {
 			case watch.Error:
-				return nil, fmt.Errorf("received error event: %+v", event)
+				return nil, ErrWrongInput
 			case watch.Deleted:
-				return nil, fmt.Errorf("resource is deleted")
+				return nil, ErrWrongInput
 			default:
-				ds, ok := event.Object.(*appsv1.DaemonSet)
+				jb, ok := event.Object.(*batchv1.Job)
 				if !ok {
-					return nil, fmt.Errorf("failed to get metaObject")
+					return nil, ErrWrongInput
 				}
 
-				if ds.Status.NumberReady == 0 {
+				if jb.Status.Active == 0 {
 					break
 
-				} else if ds.Status.NumberReady == ds.Status.DesiredNumberScheduled {
+				} else if jb.Status.Active == *(jb.Spec.Parallelism) {
 
-					return ds, nil
+					return jb, nil
 				}
+
 			}
 		case <-ctx.Done():
 			return nil, ErrTimeOut

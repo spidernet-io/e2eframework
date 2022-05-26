@@ -6,3 +6,4 @@ import "errors"
 
 var ErrWrongInput = errors.New("input variable is not valid")
 var ErrTimeOut = errors.New("context timeout")
+var ErrChanelClosed = errors.New("channel is closed")

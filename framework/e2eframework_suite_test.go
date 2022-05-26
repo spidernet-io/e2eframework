@@ -5,11 +5,12 @@ package framework_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"io/ioutil"
 	"os"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	batchv1 "k8s.io/api/batch/v1"
 
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,7 +30,9 @@ func TestE2eframework(t *testing.T) {
 
 func fakeClientSet() client.WithWatch {
 	scheme := runtime.NewScheme()
-	err := corev1.AddToScheme(scheme)
+	err := batchv1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = corev1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = apiextensions_v1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())

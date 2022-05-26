@@ -12,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/watch"
@@ -51,10 +52,8 @@ func (f *Framework) CreateDeployment(dpm *appsv1.Deployment, opts ...client.Crea
 
 func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.DeleteOption) error {
 
-	if name == "" {
-		return fmt.Errorf("the deployment name cannot to be empty")
-	} else if namespace == "" {
-		return fmt.Errorf("the namespace cannot to be empty")
+	if name == "" || namespace == "" {
+		return ErrWrongInput
 	}
 
 	pod := &appsv1.Deployment{
@@ -68,10 +67,8 @@ func (f *Framework) DeleteDeployment(name, namespace string, opts ...client.Dele
 
 func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, error) {
 
-	if name == "" {
-		return nil, fmt.Errorf("the deployment name cannot to be empty")
-	} else if namespace == "" {
-		return nil, fmt.Errorf("the namespace cannot to be empty")
+	if name == "" || namespace == "" {
+		return nil, ErrWrongInput
 	}
 
 	dpm := &appsv1.Deployment{
@@ -92,7 +89,7 @@ func (f *Framework) GetDeploymnet(name, namespace string) (*appsv1.Deployment, e
 func (f *Framework) GetDeploymentPodList(dpm *appsv1.Deployment) (*corev1.PodList, error) {
 
 	if dpm == nil {
-		return nil, fmt.Errorf("dpm cannot be nil")
+		return nil, ErrWrongInput
 	}
 
 	pods := &corev1.PodList{}
@@ -110,8 +107,9 @@ func (f *Framework) GetDeploymentPodList(dpm *appsv1.Deployment) (*corev1.PodLis
 
 func (f *Framework) ScaleDeployment(dpm *appsv1.Deployment, replicas int32) (*appsv1.Deployment, error) {
 	if dpm == nil {
-		return nil, fmt.Errorf("deployment cannot be nil")
+		return nil, ErrWrongInput
 	}
+
 	dpm.Spec.Replicas = pointer.Int32(replicas)
 	err := f.UpdateResource(dpm)
 	if err != nil {
@@ -122,10 +120,8 @@ func (f *Framework) ScaleDeployment(dpm *appsv1.Deployment, replicas int32) (*ap
 
 func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Context) (*appsv1.Deployment, error) {
 
-	if name == "" {
-		return nil, fmt.Errorf("the deployment name not to be empty")
-	} else if namespace == "" {
-		return nil, fmt.Errorf("the namespace not to be empty")
+	if name == "" || namespace == "" {
+		return nil, ErrWrongInput
 	}
 
 	l := &client.ListOptions{
@@ -162,7 +158,7 @@ func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Cont
 				}
 			}
 		case <-ctx.Done():
-			return nil, fmt.Errorf("ctx timeout ")
+			return nil, ErrTimeOut
 		}
 	}
 }

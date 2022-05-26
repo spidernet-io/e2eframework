@@ -39,7 +39,7 @@ func RandomName() string {
 	return fmt.Sprintf("%v%v-%v", m.Minute(), m.Second(), m.Nanosecond())
 }
 
-// simulate Eventually for internal
+// Eventually simulate for internal
 func Eventually(f func() bool, timeout time.Duration, interval time.Duration) bool {
 	timeoutAfter := time.After(timeout)
 	for {
@@ -53,4 +53,11 @@ func Eventually(f func() bool, timeout time.Duration, interval time.Duration) bo
 		}
 		time.Sleep(interval)
 	}
+}
+
+// BuildCommands return all command args
+func BuildCommands(args ...string) []string {
+	var cmd []string
+	cmd = append(cmd, args...)
+	return cmd
 }

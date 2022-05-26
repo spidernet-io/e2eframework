@@ -92,6 +92,8 @@ type Framework struct {
 
 	t      TestingT
 	Config FConfig
+
+	Interface
 }
 
 // -------------------------------------------
@@ -126,6 +128,7 @@ func NewFramework(t TestingT, fakeClient ...client.WithWatch) (*Framework, error
 	}
 
 	f := &Framework{}
+	f.Interface = NewRunner()
 	f.t = t
 
 	v := deepcopy.Copy(*clusterInfo)

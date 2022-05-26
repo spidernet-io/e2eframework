@@ -50,6 +50,7 @@ func generateExampleStatefulSetYaml(stsName, namespace string, replica int32) *a
 				},
 			},
 		},
+		//the fake clientset will not schedule statefulSet replicaset,so mock the number
 		Status: appsv1.StatefulSetStatus{
 			Replicas:      replica,
 			ReadyReplicas: replica,
@@ -149,38 +150,38 @@ var _ = Describe("test statefulSet", Label("statefulSet"), func() {
 		GinkgoWriter.Println("failed wait statefulSet ready with wrong input")
 		sts2, e2 := f.WaitStatefulSetReady("", namespace, ctx1)
 		Expect(sts2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		sts2, e2 = f.WaitStatefulSetReady(stsName, "", ctx1)
 		Expect(sts2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to delete statefulSet with wrong input
 		GinkgoWriter.Println("failed to delete statefulSet with wrong input")
 		e3 := f.DeleteStatefulSet("", namespace)
-		Expect(e3).To(HaveOccurred())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 		e3 = f.DeleteStatefulSet(stsName, "")
-		Expect(e3).To(HaveOccurred())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get statefulSet with wrong input
 		GinkgoWriter.Println("failed to get statefulSet with wrong input")
 		getSts4, e4 := f.GetStatefulSet("", namespace)
 		Expect(getSts4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
+		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
 		getSts4, e4 = f.GetStatefulSet(stsName, "")
 		Expect(getSts4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
+		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get statefulSet pod list with wrong input
 		GinkgoWriter.Println("failed to get statefulSet pod list with wrong input")
 		podList5, e5 := f.GetStatefulSetPodList(stsNil)
 		Expect(podList5).To(BeNil())
-		Expect(e5).To(HaveOccurred())
+		Expect(e5).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to scale statefulSet with wrong input
 		GinkgoWriter.Println("failed to scale statefulSet with wrong input")
 		getSts6, e6 := f.ScaleStatefulSet(stsNil, scaleReplicas)
 		Expect(getSts6).To(BeNil())
-		Expect(e6).To(HaveOccurred())
+		Expect(e6).Should(MatchError(e2e.ErrWrongInput))
 	})
 })

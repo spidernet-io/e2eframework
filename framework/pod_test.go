@@ -69,21 +69,9 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e1).NotTo(HaveOccurred())
 		Expect(pod).NotTo(BeNil())
 
-		// UT cover pod name to be empty
-		_, e1 = f.WaitPodStarted("", namespace, ctx)
-		Expect(e1).To(HaveOccurred())
-		_, e1 = f.WaitPodStarted(podName, "", ctx)
-		Expect(e1).To(HaveOccurred())
-
 		getPod, e3 := f.GetPod(podName, namespace)
 		Expect(e3).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
-
-		// UT cover pod name/namespace to be empty
-		_, e3 = f.GetPod("", namespace)
-		Expect(e3).To(HaveOccurred())
-		_, e3 = f.GetPod(podName, "")
-		Expect(e3).To(HaveOccurred())
 
 		pods, e4 := f.GetPodList(&client.ListOptions{Namespace: namespace})
 		Expect(e4).NotTo(HaveOccurred())
@@ -92,12 +80,34 @@ var _ = Describe("test pod", Label("pod"), func() {
 		e5 := f.DeletePod(podName, namespace)
 		Expect(e5).NotTo(HaveOccurred())
 
-		// UT cover delete pod name/namespace to be empty
-		e5 = f.DeletePod("", namespace)
-		Expect(e5).To(HaveOccurred())
-		e5 = f.DeletePod(podName, "")
-		Expect(e5).To(HaveOccurred())
+	})
+	It("counter example with wrong input", func() {
+		podName := "testpod"
+		namespace := "default"
 
+		// failed wait pod ready with wrong input name/namespace to be empty
+		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel1()
+		getPod1, err1 := f.WaitPodStarted("", namespace, ctx1)
+		Expect(getPod1).To(BeNil())
+		Expect(err1).Should(MatchError(e2e.ErrWrongInput))
+		getPod2, err2 := f.WaitPodStarted(podName, "", ctx1)
+		Expect(getPod2).To(BeNil())
+		Expect(err2).Should(MatchError(e2e.ErrWrongInput))
+
+		// UT cover get pod name/namespace input to be empty
+		getPod3, err3 := f.GetPod("", namespace)
+		Expect(getPod3).To(BeNil())
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
+		getPod3, err3 = f.GetPod(podName, "")
+		Expect(getPod3).To(BeNil())
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
+
+		// UT cover delete pod name/namespace input to be empty
+		err4 := f.DeletePod("", namespace)
+		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
+		err4 = f.DeletePod(podName, "")
+		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
 	})
 
 })

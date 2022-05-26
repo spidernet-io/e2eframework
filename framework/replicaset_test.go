@@ -139,33 +139,33 @@ var _ = Describe("test ReplicaSet", Label("ReplicaSet"), func() {
 		defer cancel1()
 		getrs1, err1 := f.WaitReplicaSetReady("", namespace, ctx1)
 		Expect(getrs1).To(BeNil())
-		Expect(err1).To(HaveOccurred())
+		Expect(err1).Should(MatchError(e2e.ErrWrongInput))
 		getrs2, err2 := f.WaitReplicaSetReady(rsName, "", ctx1)
 		Expect(getrs2).To(BeNil())
-		Expect(err2).To(HaveOccurred())
+		Expect(err2).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover get ReplicaSet name/namespace input to be empty
-		getrs3, err3 := f.GetDeploymnet("", namespace)
+		getrs3, err3 := f.GetReplicaSet("", namespace)
 		Expect(getrs3).To(BeNil())
-		Expect(err3).To(HaveOccurred())
-		getrs3, err3 = f.GetDeploymnet(rsName, "")
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
+		getrs3, err3 = f.GetReplicaSet(rsName, "")
 		Expect(getrs3).To(BeNil())
-		Expect(err3).To(HaveOccurred())
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover get ReplicaSet pod list input to be empty
 		getrs4, err4 := f.GetReplicaSetPodList(rsNil)
 		Expect(getrs4).To(BeNil())
-		Expect(err4).To(HaveOccurred())
+		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover scale ReplicaSet input to be empty
 		getrs5, err5 := f.ScaleReplicaSet(rsNil, scaleReplicas)
 		Expect(getrs5).To(BeNil())
-		Expect(err5).To(HaveOccurred())
+		Expect(err5).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover delete ReplicaSet name/namespace input to be empty
 		err6 := f.DeleteReplicaSet("", namespace)
-		Expect(err6).To(HaveOccurred())
+		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
 		err6 = f.DeleteReplicaSet(rsName, "")
-		Expect(err6).To(HaveOccurred())
+		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
 	})
 })

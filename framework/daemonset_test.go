@@ -134,33 +134,33 @@ var _ = Describe("unit test DaemonSet", Label("DaemonSet"), func() {
 		GinkgoWriter.Println("failed wait DaemonSet ready with wrong input")
 		ds2, e2 := f.WaitDaemonSetReady("", namespace, ctx1)
 		Expect(ds2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		ds2, e2 = f.WaitDaemonSetReady(dsName, "", ctx1)
 		Expect(ds2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to delete DaemonSet with wrong input
 		GinkgoWriter.Println("failed to delete DaemonSet with wrong input")
 		e3 := f.DeleteDaemonSet("", namespace)
-		Expect(e3).To(HaveOccurred())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 		e3 = f.DeleteDaemonSet(dsName, "")
-		Expect(e3).To(HaveOccurred())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get DaemonSet with wrong input
 		GinkgoWriter.Println("failed to get DaemonSet with wrong input")
 		getds4, e4 := f.GetDaemonSet("", namespace)
 		Expect(getds4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
+		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
 		getds4, e4 = f.GetDaemonSet(dsName, "")
 		Expect(getds4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
+		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get DaemonSet pod list with wrong input
 		GinkgoWriter.Println("failed to get DaemonSet pod list with wrong input")
 		podList5, e5 := f.GetDaemonSetPodList(dsNil)
 		Expect(podList5).To(BeNil())
-		Expect(e5).To(HaveOccurred())
+		Expect(e5).Should(MatchError(e2e.ErrWrongInput))
 
 	})
 })

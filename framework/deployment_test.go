@@ -50,6 +50,7 @@ func GenerateExampleDeploymentYaml(dpmName, namespace string, replica, readyRepl
 				},
 			},
 		},
+		//the fake clientset will not schedule deployment replicaset,so mock the number
 		Status: appsv1.DeploymentStatus{
 			ReadyReplicas: readyReplica,
 			Replicas:      replica,
@@ -107,6 +108,10 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(podList).NotTo(BeNil())
 		Expect(err4).NotTo(HaveOccurred())
 
+		// check pod ipv4 ipv6
+		err4 = f.CheckPodListIpReady(podList)
+		Expect(err4).NotTo(HaveOccurred())
+
 		// scale deployment
 		GinkgoWriter.Println("scale deployment")
 		getDpm2, err5 := f.ScaleDeployment(dpm, scaleReplicas)
@@ -124,46 +129,63 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		err7 := f.DeleteDeployment(dpmName, namespace)
 		Expect(err7).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("%v deleted successfully \n", dpmName)
+
+		// wait deployment replicas until delete Complete
+		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel2()
+		GinkgoWriter.Printf("wait deployment %v replicas until delete Complete \n", dpmName)
+		err8 := f.WaitDeleteUntilComplete(namespace, dpm.Spec.Selector.MatchLabels, ctx2)
+		Expect(err8).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("%v all replicas deleted successfully \n", dpmName)
 	})
 
 	It("counter example with wrong input", func() {
 		dpmName := "testDpm"
 		namespace := "default"
+		replica := int32(3)
+		readyReplica := int32(3)
 		scaleReplicas := int32(2)
 		var dpmNil *appsv1.Deployment = nil
+		dpm := GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
 
 		// failed wait deployment ready with wrong input name/namespace to be empty
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel1()
 		getdpm1, err1 := f.WaitDeploymentReady("", namespace, ctx1)
 		Expect(getdpm1).To(BeNil())
-		Expect(err1).To(HaveOccurred())
+		Expect(err1).Should(MatchError(e2e.ErrWrongInput))
 		getdpm2, err2 := f.WaitDeploymentReady(dpmName, "", ctx1)
 		Expect(getdpm2).To(BeNil())
-		Expect(err2).To(HaveOccurred())
+		Expect(err2).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover get deployment name/namespace input to be empty
 		getdpm3, err3 := f.GetDeploymnet("", namespace)
 		Expect(getdpm3).To(BeNil())
-		Expect(err3).To(HaveOccurred())
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
 		getdpm3, err3 = f.GetDeploymnet(dpmName, "")
 		Expect(getdpm3).To(BeNil())
-		Expect(err3).To(HaveOccurred())
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover get deployment pod list input to be empty
 		getdpm4, err4 := f.GetDeploymentPodList(dpmNil)
 		Expect(getdpm4).To(BeNil())
-		Expect(err4).To(HaveOccurred())
+		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover scale deployment input to be empty
 		getdpm5, err5 := f.ScaleDeployment(dpmNil, scaleReplicas)
 		Expect(getdpm5).To(BeNil())
-		Expect(err5).To(HaveOccurred())
+		Expect(err5).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover delete deployment name/namespace input to be empty
 		err6 := f.DeleteDeployment("", namespace)
-		Expect(err6).To(HaveOccurred())
+		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
 		err6 = f.DeleteDeployment(dpmName, "")
-		Expect(err6).To(HaveOccurred())
+		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
+
+		// UT cover wait delete until complete with wrong input
+		err7 := f.WaitDeleteUntilComplete("", dpm.Spec.Selector.MatchLabels, ctx1)
+		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
+		err7 = f.WaitDeleteUntilComplete(namespace, nil, ctx1)
+		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
 	})
 })

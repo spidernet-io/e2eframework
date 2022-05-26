@@ -25,5 +25,9 @@ var _ = Describe("test namespace", Label("namespace"), func() {
 		Expect(e).NotTo(HaveOccurred())
 
 	})
-
+	It("counter example with wrong input", func() {
+		// namespace := "testns"
+		e := f.DeleteNamespace("")
+		Expect(e).Should(MatchError(e2e.ErrWrongInput))
+	})
 })

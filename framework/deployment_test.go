@@ -188,4 +188,73 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		err7 = f.WaitDeleteUntilComplete(namespace, nil, ctx1)
 		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
 	})
+
+	It("Some operations on pods", func() {
+		dpmName := "testDpm"
+		namespace := "default"
+		replica := int32(3)
+		readyReplica := int32(3)
+
+		wg.Add(1)
+		go func() {
+			defer GinkgoRecover()
+			// notice: WaitPodStarted use watch , but for the fake clientset,
+			// the watch have started before the pod ready, or else the watch will miss the event
+			// so we create the pod after WaitPodStarted
+			// in the real environment, this issue does not exist
+			time.Sleep(2 * time.Second)
+			dpm := GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
+
+			err1 := f.CreateDeployment(dpm)
+			Expect(err1).NotTo(HaveOccurred())
+			GinkgoWriter.Printf("finish creating deployment \n")
+
+			wg.Done()
+		}()
+
+		// wait deployment ready
+		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel1()
+
+		dpm, err2 := f.WaitDeploymentReady(dpmName, namespace, ctx1)
+		Expect(err2).NotTo(HaveOccurred())
+		Expect(dpm).NotTo(BeNil())
+
+		//get pod list by label
+		pods, err3 := f.GetPodListByLabel(dpm.Spec.Selector.MatchLabels)
+		Expect(err3).NotTo(HaveOccurred())
+		Expect(pods).NotTo(BeNil())
+
+		// check podList running
+		err4 := f.CheckPodListRunning(pods)
+		Expect(err4).To(BeTrue())
+
+		// delete pod list
+		err5 := f.DeletePodList(pods)
+		Expect(err5).NotTo(HaveOccurred())
+
+		// delete deployment
+		GinkgoWriter.Printf("delete deployment %v \n", dpmName)
+		err6 := f.DeleteDeployment(dpmName, namespace)
+		Expect(err6).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("%v deleted successfully \n", dpmName)
+
+	})
+
+	It("about pods counter example with wrong input", func() {
+		var podsNil *corev1.PodList = nil
+
+		//failed to with wrong input
+		err1 := f.CheckPodListRunning(podsNil)
+		Expect(err1).To(BeFalse())
+
+		//failed to with wrong input
+		err2 := f.DeletePodList(podsNil)
+		Expect(err2).Should(MatchError(e2e.ErrWrongInput))
+
+		//failed to with wrong input
+		_, err3 := f.GetPodListByLabel(nil)
+		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
+	})
+
 })

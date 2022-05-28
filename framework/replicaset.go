@@ -44,7 +44,7 @@ func (f *Framework) CreateReplicaSet(rs *appsv1.ReplicaSet, opts ...client.Creat
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return fmt.Errorf("time out to wait a deleting ReplicaSet")
+		return ErrTimeOutWait
 	}
 	return f.CreateResource(rs, opts...)
 }
@@ -128,7 +128,7 @@ func (f *Framework) WaitReplicaSetReady(name, namespace string, ctx context.Cont
 	}
 	watchInterface, err := f.KClient.Watch(ctx, &appsv1.ReplicaSetList{}, l)
 	if err != nil {
-		return nil, fmt.Errorf("failed to Watch: %v", err)
+		return nil, ErrWatch
 	}
 	defer watchInterface.Stop()
 
@@ -137,18 +137,18 @@ func (f *Framework) WaitReplicaSetReady(name, namespace string, ctx context.Cont
 		case event, ok := <-watchInterface.ResultChan():
 			f.t.Logf("ReplicaSet %v/%v\n", event, ok)
 			if !ok {
-				return nil, fmt.Errorf("channel is closed ")
+				return nil, ErrChanelClosed
 			}
 			f.t.Logf("ReplicaSet %v/%v %v event \n", namespace, name, event.Type)
 			switch event.Type {
 			case watch.Error:
-				return nil, fmt.Errorf("received error event: %+v", event)
+				return nil, ErrEvent
 			case watch.Deleted:
-				return nil, fmt.Errorf("resource is deleted")
+				return nil, ErrResDel
 			default:
 				rs, ok := event.Object.(*appsv1.ReplicaSet)
 				if !ok {
-					return nil, fmt.Errorf("failed to get metaObject")
+					return nil, ErrGetObj
 				}
 				f.t.Logf("ReplicaSet %v/%v readyReplicas=%+v\n", namespace, name, rs.Status.ReadyReplicas)
 				if rs.Status.ReadyReplicas == *(rs.Spec.Replicas) {

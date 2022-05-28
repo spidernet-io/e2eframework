@@ -16,7 +16,7 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-func generateExampleJobYaml(jbName, namespace string, parallelism *int32) *batchv1.Job {
+func generateExampleJobYaml(jbName, namespace string, active int32, parallelism *int32) *batchv1.Job {
 	Expect(jbName).NotTo(BeEmpty())
 	Expect(namespace).NotTo(BeEmpty())
 
@@ -41,7 +41,7 @@ func generateExampleJobYaml(jbName, namespace string, parallelism *int32) *batch
 					},
 				},
 				Spec: corev1.PodSpec{
-					//RestartPolicy: "Always",
+					RestartPolicy: "Never",
 					Containers: []corev1.Container{
 						{
 							Name:            "samplepod",
@@ -55,10 +55,10 @@ func generateExampleJobYaml(jbName, namespace string, parallelism *int32) *batch
 		},
 		// the fake clientset will not schedule Job  so mock the number
 
-		// Status: batchv1.JobStatus{
-
-		// 	Ready: ready,
-		// },
+		Status: batchv1.JobStatus{
+			//	Ready:  ready,
+			Active: active,
+		},
 	}
 }
 
@@ -72,14 +72,13 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 	It("operate Job", func() {
 		jbName := "testjb"
 		namespace := "ns-jb"
-		//Ready := pointer.Int32(3)
-		Parallelism := pointer.Int32(1)
+		Parallelism := pointer.Int32(3)
 
 		wg.Add(1)
 		go func() {
 			defer GinkgoRecover()
-			//	time.Sleep(2 * time.Second)
-			jb := generateExampleJobYaml(jbName, namespace, Parallelism)
+			time.Sleep(2 * time.Second)
+			jb := generateExampleJobYaml(jbName, namespace, int32(3), Parallelism)
 
 			// create Job
 			GinkgoWriter.Println("create Job")
@@ -121,12 +120,6 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 		Expect(e5).To(HaveOccurred())
 		GinkgoWriter.Printf("failed creating a Job with a same name: %v\n", jbName)
 
-		// delete already created Job
-		GinkgoWriter.Printf("delete Job %v \n", jbName)
-		e6 := f.DeleteJob(jbName, namespace)
-		Expect(e6).NotTo(HaveOccurred())
-		GinkgoWriter.Printf("%v deleted successfully \n", jbName)
-
 	})
 	It("counter example with wrong input", func() {
 		jbName := "testjb"
@@ -139,18 +132,18 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 		GinkgoWriter.Println("failed wait Job ready with wrong input")
 		jb2, e2 := f.WaitJobReady("", namespace, ctx1)
 		Expect(jb2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		jb2, e2 = f.WaitJobReady(jbName, "", ctx1)
 		Expect(jb2).To(BeNil())
-		Expect(e2).To(HaveOccurred())
+		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to delete Job with wrong input
 		GinkgoWriter.Println("failed to delete Job with wrong input")
 		e3 := f.DeleteJob("", namespace)
 		Expect(e3).To(HaveOccurred())
 		e3 = f.DeleteJob(jbName, "")
-		Expect(e3).To(HaveOccurred())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get Job with wrong input
 		GinkgoWriter.Println("failed to get Job with wrong input")
@@ -159,13 +152,13 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 		Expect(e4).To(HaveOccurred())
 		getjb4, e4 = f.GetJob(jbName, "")
 		Expect(getjb4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
+		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get Job pod list with wrong input
 		GinkgoWriter.Println("failed to get Job pod list with wrong input")
 		podList5, e5 := f.GetJobPodList(jbNil)
 		Expect(podList5).To(BeNil())
-		Expect(e5).To(HaveOccurred())
+		Expect(e5).Should(MatchError(e2e.ErrWrongInput))
 
 	})
 })

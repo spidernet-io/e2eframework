@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func generateExamplePodYaml(podName, namespace string) *corev1.Pod {
+func generateExamplePodYaml(podName, namespace string, label map[string]string, phase corev1.PodPhase) *corev1.Pod {
 	Expect(podName).NotTo(BeEmpty())
 	Expect(namespace).NotTo(BeEmpty())
 
@@ -24,6 +24,7 @@ func generateExamplePodYaml(podName, namespace string) *corev1.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      podName,
+			Labels:    label,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
@@ -35,20 +36,27 @@ func generateExamplePodYaml(podName, namespace string) *corev1.Pod {
 				},
 			},
 		},
+		Status: corev1.PodStatus{
+			Phase: phase,
+		},
 	}
 }
 
 var _ = Describe("test pod", Label("pod"), func() {
 	var f *e2e.Framework
-
+	var podName, namespace string
+	var label map[string]string
 	BeforeEach(func() {
 		f = fakeFramework()
+
+		podName = "testpod"
+		namespace = "default"
+		label = map[string]string{
+			"app": "testpod",
+		}
 	})
 
 	It("operate pod", func() {
-
-		podName := "testpod"
-		namespace := "default"
 
 		go func() {
 			defer GinkgoRecover()
@@ -57,33 +65,99 @@ var _ = Describe("test pod", Label("pod"), func() {
 			// so we create the pod after WaitPodStarted
 			// in the real environment, this issue does not exist
 			time.Sleep(2 * time.Second)
-			pod1 := generateExamplePodYaml(podName, namespace)
-			e2 := f.CreatePod(pod1)
-			Expect(e2).NotTo(HaveOccurred())
-			GinkgoWriter.Printf("finish creating pod \n")
+			// generate pod yaml
+			pod := generateExamplePodYaml(podName, namespace, label, "")
+
+			// create pod
+			e := f.CreatePod(pod)
+			Expect(e).NotTo(HaveOccurred())
+			GinkgoWriter.Printf("finish creating pod %v/%v \n", namespace, podName)
 		}()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-		pod, e1 := f.WaitPodStarted(podName, namespace, ctx)
+		// wait pod started
+		ctx1, cancel1 := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel1()
+		pod, e1 := f.WaitPodStarted(podName, namespace, ctx1)
 		Expect(e1).NotTo(HaveOccurred())
 		Expect(pod).NotTo(BeNil())
 
-		getPod, e3 := f.GetPod(podName, namespace)
-		Expect(e3).NotTo(HaveOccurred())
+		// get pod
+		getPod, e2 := f.GetPod(podName, namespace)
+		Expect(e2).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
 
-		pods, e4 := f.GetPodList(&client.ListOptions{Namespace: namespace})
+		// get pod list
+		podList, e3 := f.GetPodList(&client.ListOptions{Namespace: namespace})
+		Expect(e3).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("len of pods: %v", len(podList.Items))
+
+		// delete pod
+		e4 := f.DeletePod(podName, namespace)
 		Expect(e4).NotTo(HaveOccurred())
-		GinkgoWriter.Printf("len of pods: %v", len(pods.Items))
 
-		e5 := f.DeletePod(podName, namespace)
+		// the following are cases for testing pod list
+		// generate pod yaml
+		pod1 := generateExamplePodYaml(podName, namespace, label, "Running")
+
+		// create pod
+		e5 := f.CreatePod(pod1)
 		Expect(e5).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("finish creating pod %v/%v \n", namespace, podName)
 
+		// get pod list by label
+		podList1, e6 := f.GetPodListByLabel(label)
+		Expect(podList1).NotTo(BeNil())
+		Expect(e6).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("get pod list : %+v \n", podList1)
+
+		// check pod list running
+		ok1 := f.CheckPodListRunning(podList1)
+		Expect(ok1).To(BeTrue())
+
+		// wait pod list running
+		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel2()
+		e7 := f.WaitPodListRunning(label, 1, ctx2)
+		Expect(e7).NotTo(HaveOccurred())
+
+		// delete pod list
+		e8 := f.DeletePodList(podList1)
+		Expect(e8).NotTo(HaveOccurred())
+
+		// counter cases for testing pod list
+		// generate pod yaml
+		pod2 := generateExamplePodYaml(podName, namespace, label, "")
+
+		// create pod
+		e9 := f.CreatePod(pod2)
+		Expect(e9).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("finish creating pod %v/%v \n", namespace, podName)
+
+		// get pod list by label
+		podList2, e10 := f.GetPodListByLabel(label)
+		Expect(podList2).NotTo(BeNil())
+		Expect(e10).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("get pod list : %+v \n", podList2)
+
+		// check pod list running
+		ok2 := f.CheckPodListRunning(podList2)
+		Expect(ok2).To(BeFalse())
+
+		// wait pod list running
+		ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel3()
+		e11 := f.WaitPodListRunning(label, 1, ctx3)
+		Expect(e11).To(HaveOccurred())
+		e12 := f.WaitPodListRunning(label, 2, ctx3)
+		Expect(e12).To(HaveOccurred())
+
+		// delete podList repeatedly
+		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel4()
+		e13 := f.DeletePodListRepeatedly(label, time.Second*2, ctx4)
+		Expect(e13).To(BeNil())
 	})
 	It("counter example with wrong input", func() {
-		podName := "testpod"
-		namespace := "default"
 
 		// failed wait pod ready with wrong input name/namespace to be empty
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
@@ -108,6 +182,31 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
 		err4 = f.DeletePod(podName, "")
 		Expect(err4).Should(MatchError(e2e.ErrWrongInput))
-	})
 
+		// UT cover get pod list by label, input to be nil
+		pods, err5 := f.GetPodListByLabel(nil)
+		Expect(pods).To(BeNil())
+		Expect(err5).To(MatchError(e2e.ErrWrongInput))
+
+		// UT cover check pod list running, input to be nil
+		ok1 := f.CheckPodListRunning(nil)
+		Expect(ok1).To(BeFalse())
+
+		// UT cover delete pod list, input to be nil
+		err6 := f.DeletePodList(nil)
+		Expect(err6).To(MatchError(e2e.ErrWrongInput))
+
+		// UT wait pod list running, input to be nil
+		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel2()
+		err7 := f.WaitPodListRunning(nil, 1, ctx2)
+		Expect(err7).To(MatchError(e2e.ErrWrongInput))
+		err8 := f.WaitPodListRunning(label, 0, ctx2)
+		Expect(err8).To(MatchError(e2e.ErrWrongInput))
+
+		ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel3()
+		err9 := f.DeletePodListRepeatedly(nil, time.Second*2, ctx3)
+		Expect(err9).To(MatchError(e2e.ErrWrongInput))
+	})
 })

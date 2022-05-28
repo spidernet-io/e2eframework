@@ -26,24 +26,28 @@ func (f *Framework) CreateDaemonSet(ds *appsv1.DaemonSet, opts ...client.CreateO
 			Name:      ds.ObjectMeta.Name,
 		},
 	}
+
+	const daemonNs = "ds.ObjectMeta.Namespace"
+	const daemonName = "ds.ObjectMeta.Name"
+
 	key := client.ObjectKeyFromObject(fake)
 	existing := &appsv1.DaemonSet{}
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same DaemonSet %v/%v exist", ds.ObjectMeta.Namespace, ds.ObjectMeta.Name)
+		return fmt.Errorf("failed to create , a same DaemonSet %v/%v exist", daemonNs, daemonName)
 	}
 	t := func() bool {
 		existing := &appsv1.DaemonSet{}
 		e := f.GetResource(key, existing)
 		b := api_errors.IsNotFound(e)
 		if !b {
-			f.t.Logf("waiting for a same DaemonSet %v/%v to finish deleting \n", ds.ObjectMeta.Namespace, ds.ObjectMeta.Name)
+			f.t.Logf("waiting for a same DaemonSet %v/%v to finish deleting \n", daemonNs, daemonName)
 			return false
 		}
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return fmt.Errorf("time out to wait a deleting DaemonSet")
+		return ErrTimeOutWait
 	}
 
 	return f.CreateResource(ds, opts...)
@@ -112,7 +116,7 @@ func (f *Framework) WaitDaemonSetReady(name, namespace string, ctx context.Conte
 	}
 	watchInterface, err := f.KClient.Watch(ctx, &appsv1.DaemonSetList{}, l)
 	if err != nil {
-		return nil, fmt.Errorf("failed to Watch: %v", err)
+		return nil, ErrWatch
 	}
 	defer watchInterface.Stop()
 
@@ -121,24 +125,19 @@ func (f *Framework) WaitDaemonSetReady(name, namespace string, ctx context.Conte
 		// if ds not exist , got no event
 		case event, ok := <-watchInterface.ResultChan():
 			if !ok {
-				return nil, fmt.Errorf("channel is closed ")
+				return nil, ErrChanelClosed
 			}
 			f.t.Logf(" ds %v/%v %v event \n", namespace, name, event.Type)
 
-			// Added    EventType = "ADDED"
-			// Modified EventType = "MODIFIED"
-			// Deleted  EventType = "DELETED"
-			// Bookmark EventType = "BOOKMARK"
-			// Error    EventType = "ERROR"
 			switch event.Type {
 			case watch.Error:
-				return nil, fmt.Errorf("received error event: %+v", event)
+				return nil, ErrEvent
 			case watch.Deleted:
-				return nil, fmt.Errorf("resource is deleted")
+				return nil, ErrResDel
 			default:
 				ds, ok := event.Object.(*appsv1.DaemonSet)
 				if !ok {
-					return nil, fmt.Errorf("failed to get metaObject")
+					return nil, ErrGetObj
 				}
 
 				if ds.Status.NumberReady == 0 {

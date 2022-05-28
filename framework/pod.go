@@ -193,3 +193,84 @@ func (f *Framework) CheckPodListIpReady(podlist *corev1.PodList) error {
 	}
 	return nil
 }
+
+func (f *Framework) GetPodListByLabel(label map[string]string) (*corev1.PodList, error) {
+	if label == nil {
+		return nil, ErrWrongInput
+	}
+	ops := []client.ListOption{
+		client.MatchingLabels(label),
+	}
+	return f.GetPodList(ops...)
+}
+
+func (f *Framework) CheckPodListRunning(podList *corev1.PodList) bool {
+	if podList == nil {
+		return false
+	}
+	for _, item := range podList.Items {
+		if item.Status.Phase != "Running" {
+			return false
+		}
+	}
+	return true
+}
+
+func (f *Framework) DeletePodList(podList *corev1.PodList) error {
+	if podList == nil {
+		return ErrWrongInput
+	}
+	for _, item := range podList.Items {
+		err := f.DeletePod(item.Name, item.Namespace)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *Framework) WaitPodListRunning(label map[string]string, expectedPodNum int, ctx context.Context) error {
+	if label == nil || expectedPodNum == 0 {
+		return ErrWrongInput
+	}
+	for {
+		select {
+		default:
+			// get pod list
+			podList, err := f.GetPodListByLabel(label)
+			if err != nil {
+				return err
+			}
+			if len(podList.Items) != expectedPodNum {
+				break
+			}
+
+			// wait pod list Running
+			if f.CheckPodListRunning(podList) {
+				return nil
+			}
+			time.Sleep(time.Second)
+		case <-ctx.Done():
+			return fmt.Errorf("time out to wait podList ready")
+		}
+	}
+}
+
+func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval time.Duration, ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			podList, e1 := f.GetPodListByLabel(label)
+			if e1 != nil {
+				return e1
+			}
+			e2 := f.DeletePodList(podList)
+			if e2 != nil {
+				return e2
+			}
+			time.Sleep(interval)
+		}
+	}
+}

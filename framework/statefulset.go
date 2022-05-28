@@ -159,7 +159,8 @@ func (f *Framework) WaitStatefulSetReady(name, namespace string, ctx context.Con
 					return nil, fmt.Errorf("failed to get metaObject")
 				}
 				f.t.Logf("sts %v/%v readyReplicas=%+v\n", namespace, name, sts.Status.ReadyReplicas)
-				if sts.Status.ReadyReplicas == *(sts.Spec.Replicas) {
+				if sts.Status.ReadyReplicas == *(sts.Spec.Replicas) &&
+					sts.Status.AvailableReplicas == sts.Status.Replicas {
 					return sts, nil
 				}
 			}

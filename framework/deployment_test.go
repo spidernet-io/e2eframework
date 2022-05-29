@@ -134,7 +134,7 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel2()
 		GinkgoWriter.Printf("wait deployment %v replicas until delete Complete \n", dpmName)
-		err8 := f.WaitDeleteUntilComplete(namespace, dpm.Spec.Selector.MatchLabels, ctx2)
+		err8 := f.WaitPodDeleteUntilComplete(namespace, dpm.Spec.Selector.MatchLabels, ctx2)
 		Expect(err8).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("%v all replicas deleted successfully \n", dpmName)
 	})
@@ -183,9 +183,9 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover wait delete until complete with wrong input
-		err7 := f.WaitDeleteUntilComplete("", dpm.Spec.Selector.MatchLabels, ctx1)
+		err7 := f.WaitPodDeleteUntilComplete("", dpm.Spec.Selector.MatchLabels, ctx1)
 		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
-		err7 = f.WaitDeleteUntilComplete(namespace, nil, ctx1)
+		err7 = f.WaitPodDeleteUntilComplete(namespace, nil, ctx1)
 		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
 	})
 })

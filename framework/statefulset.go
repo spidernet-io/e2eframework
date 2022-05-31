@@ -4,7 +4,6 @@ package framework
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"k8s.io/utils/pointer"
@@ -32,7 +31,8 @@ func (f *Framework) CreateStatefulSet(sts *appsv1.StatefulSet, opts ...client.Cr
 	existing := &appsv1.StatefulSet{}
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same statefulSet %v/%v exists", sts.ObjectMeta.Namespace, sts.ObjectMeta.Name)
+		f.t.Logf(" %v/%v \n", sts.ObjectMeta.Name, sts.ObjectMeta.Namespace)
+		return ErrFailCreateSameCtl
 	}
 	t := func() bool {
 		existing := &appsv1.StatefulSet{}
@@ -45,7 +45,7 @@ func (f *Framework) CreateStatefulSet(sts *appsv1.StatefulSet, opts ...client.Cr
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return ErrTimeOutWait
+		return ErrTimeOutWaitCtl
 	}
 
 	return f.CreateResource(sts, opts...)
@@ -164,7 +164,7 @@ func (f *Framework) WaitStatefulSetReady(name, namespace string, ctx context.Con
 				}
 			}
 		case <-ctx.Done():
-			return nil, ErrTimeOut
+			return nil, ErrTimeOutCtx
 		}
 	}
 }

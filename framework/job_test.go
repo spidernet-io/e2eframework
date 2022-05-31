@@ -26,9 +26,7 @@ func generateExampleJobYaml(jbName, namespace string, active int32, parallelism 
 			Name:      jbName,
 		},
 		Spec: batchv1.JobSpec{
-
 			Parallelism: parallelism,
-
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": jbName,
@@ -54,9 +52,7 @@ func generateExampleJobYaml(jbName, namespace string, active int32, parallelism 
 			},
 		},
 		// the fake clientset will not schedule Job  so mock the number
-
 		Status: batchv1.JobStatus{
-			//	Ready:  ready,
 			Active: active,
 		},
 	}
@@ -89,15 +85,6 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 			wg.Done()
 		}()
 
-		// wait Job ready
-		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel1()
-		GinkgoWriter.Println("wait for Job ready")
-		jb, e1 := f.WaitJobReady(jbName, namespace, ctx1)
-		Expect(e1).NotTo(HaveOccurred())
-		Expect(jb).NotTo(BeNil())
-		GinkgoWriter.Println("Job is ready")
-
 		wg.Wait()
 
 		// get Job
@@ -109,18 +96,24 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 
 		// get Job pod list
 		GinkgoWriter.Println("get Job pod list")
-		podList3, e3 := f.GetJobPodList(jb)
+		podList3, e3 := f.GetJobPodList(getjb2)
 		Expect(podList3).NotTo(BeNil())
 		Expect(e3).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("get Job podList: %+v \n", *podList3)
 
 		// create a Job with a same name
 		GinkgoWriter.Println("create a Job with a same name")
-		e5 := f.CreateJob(jb)
+		e5 := f.CreateJob(getjb2)
 		Expect(e5).To(HaveOccurred())
 		GinkgoWriter.Printf("failed creating a Job with a same name: %v\n", jbName)
 
+		// delete already created Job
+		GinkgoWriter.Printf("delete Job %v \n", jbName)
+		e6 := f.DeleteJob(jbName, namespace)
+		Expect(e6).NotTo(HaveOccurred())
+		GinkgoWriter.Printf("%v deleted Job successfully \n", jbName)
 	})
+
 	It("counter example with wrong input", func() {
 		jbName := "testjb"
 		namespace := "ns-jb"
@@ -129,36 +122,38 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 		// failed wait Job ready with wrong input
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel1()
-		GinkgoWriter.Println("failed wait Job ready with wrong input")
-		jb2, e2 := f.WaitJobReady("", namespace, ctx1)
-		Expect(jb2).To(BeNil())
-		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
 
-		jb2, e2 = f.WaitJobReady(jbName, "", ctx1)
-		Expect(jb2).To(BeNil())
+		// wait to finish with wrong input
+		jb1, ok1, e2 := f.WaitJobFinished(jbName, "", ctx1)
+		Expect(ok1).To(BeFalse())
+		Expect(jb1).To(BeNil())
 		Expect(e2).Should(MatchError(e2e.ErrWrongInput))
+		jb2, ok2, e3 := f.WaitJobFinished("", namespace, ctx1)
+		Expect(ok2).To(BeFalse())
+		Expect(jb2).To(BeNil())
+		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to delete Job with wrong input
 		GinkgoWriter.Println("failed to delete Job with wrong input")
-		e3 := f.DeleteJob("", namespace)
-		Expect(e3).To(HaveOccurred())
-		e3 = f.DeleteJob(jbName, "")
-		Expect(e3).Should(MatchError(e2e.ErrWrongInput))
+		e4 := f.DeleteJob("", namespace)
+		Expect(e4).To(HaveOccurred())
+		e5 := f.DeleteJob(jbName, "")
+		Expect(e5).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get Job with wrong input
 		GinkgoWriter.Println("failed to get Job with wrong input")
-		getjb4, e4 := f.GetJob("", namespace)
+		getjb4, e6 := f.GetJob("", namespace)
 		Expect(getjb4).To(BeNil())
-		Expect(e4).To(HaveOccurred())
-		getjb4, e4 = f.GetJob(jbName, "")
+		Expect(e6).To(HaveOccurred())
+		getjb4, e7 := f.GetJob(jbName, "")
 		Expect(getjb4).To(BeNil())
-		Expect(e4).Should(MatchError(e2e.ErrWrongInput))
+		Expect(e7).Should(MatchError(e2e.ErrWrongInput))
 
 		// failed to get Job pod list with wrong input
 		GinkgoWriter.Println("failed to get Job pod list with wrong input")
-		podList5, e5 := f.GetJobPodList(jbNil)
+		podList5, e6 := f.GetJobPodList(jbNil)
 		Expect(podList5).To(BeNil())
-		Expect(e5).Should(MatchError(e2e.ErrWrongInput))
+		Expect(e6).Should(MatchError(e2e.ErrWrongInput))
 
 	})
 })

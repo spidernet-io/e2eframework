@@ -4,7 +4,6 @@ package framework
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/spidernet-io/e2eframework/tools"
@@ -31,7 +30,8 @@ func (f *Framework) CreateReplicaSet(rs *appsv1.ReplicaSet, opts ...client.Creat
 	existing := &appsv1.ReplicaSet{}
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same ReplicaSet %v/%v exists", rs.ObjectMeta.Namespace, rs.ObjectMeta.Name)
+		f.t.Logf(" %v/%v \n", rs.ObjectMeta.Name, rs.ObjectMeta.Namespace)
+		return ErrFailCreateSameCtl
 	}
 	t := func() bool {
 		existing := &appsv1.ReplicaSet{}
@@ -44,7 +44,7 @@ func (f *Framework) CreateReplicaSet(rs *appsv1.ReplicaSet, opts ...client.Creat
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return ErrTimeOutWait
+		return ErrTimeOutWaitCtl
 	}
 	return f.CreateResource(rs, opts...)
 }
@@ -156,7 +156,7 @@ func (f *Framework) WaitReplicaSetReady(name, namespace string, ctx context.Cont
 				}
 			}
 		case <-ctx.Done():
-			return nil, ErrTimeOut
+			return nil, ErrTimeOutCtx
 		}
 	}
 }

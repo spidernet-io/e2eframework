@@ -41,7 +41,7 @@ func (f *Framework) CreatePod(pod *corev1.Pod, opts ...client.CreateOption) erro
 			return true
 		}
 		if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-			return ErrTimeOutWait
+			return ErrTimeOutWaitCtl
 		}
 	}
 	return f.CreateResource(pod, opts...)
@@ -141,12 +141,12 @@ func (f *Framework) WaitPodStarted(name, namespace string, ctx context.Context) 
 				}
 			}
 		case <-ctx.Done():
-			return nil, ErrTimeOut
+			return nil, ErrTimeOutCtx
 		}
 	}
 }
 
-func (f *Framework) WaitDeleteUntilComplete(namespace string, label map[string]string, ctx context.Context) error {
+func (f *Framework) WaitPodDeleteUntilComplete(namespace string, label map[string]string, ctx context.Context) error {
 	// Query all pods corresponding to the label
 	// Delete the resource until the query is empty
 
@@ -161,7 +161,7 @@ func (f *Framework) WaitDeleteUntilComplete(namespace string, label map[string]s
 	for {
 		select {
 		case <-ctx.Done():
-			return ErrTimeOut
+			return ErrTimeOutCtx
 		default:
 			podlist, err := f.GetPodList(opts...)
 			if err != nil {

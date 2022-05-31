@@ -4,7 +4,6 @@ package framework
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/spidernet-io/e2eframework/tools"
@@ -32,7 +31,8 @@ func (f *Framework) CreateDeployment(dpm *appsv1.Deployment, opts ...client.Crea
 	existing := &appsv1.Deployment{}
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same deployment %v/%v exists", dpm.ObjectMeta.Namespace, dpm.ObjectMeta.Name)
+		f.t.Logf(" %v/%v \n", dpm.ObjectMeta.Name, dpm.ObjectMeta.Namespace)
+		return ErrFailCreateSameCtl
 	}
 	t := func() bool {
 		existing := &appsv1.Deployment{}
@@ -45,7 +45,7 @@ func (f *Framework) CreateDeployment(dpm *appsv1.Deployment, opts ...client.Crea
 		return true
 	}
 	if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-		return ErrTimeOutWait
+		return ErrTimeOutWaitCtl
 	}
 	return f.CreateResource(dpm, opts...)
 }
@@ -158,7 +158,7 @@ func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Cont
 				}
 			}
 		case <-ctx.Done():
-			return nil, ErrTimeOut
+			return nil, ErrTimeOutCtx
 		}
 	}
 }

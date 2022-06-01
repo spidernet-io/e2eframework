@@ -50,7 +50,6 @@ func generateExampleDaemonSetYaml(dsName, namespace string, numberReady, desired
 		},
 		// the fake clientset will not schedule daemonset replicaset， so mock the number
 		Status: appsv1.DaemonSetStatus{
-
 			NumberReady:            numberReady,
 			DesiredNumberScheduled: desiredNumberScheduled,
 		},

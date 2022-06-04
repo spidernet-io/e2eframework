@@ -37,6 +37,9 @@ type ClusterInfo struct {
 	// docker container name for kind cluster
 	KindNodeList    []string
 	KindNodeListRaw string
+	// multus
+	MultusDefaultCni    string
+	MultusAdditionalCni string
 }
 
 var clusterInfo = &ClusterInfo{}
@@ -59,9 +62,14 @@ const (
 	E2E_SPIDERPOOL_IPAM_ENABLED = "E2E_SPIDERPOOL_IPAM_ENABLED"
 	E2E_WHEREABOUT_IPAM_ENABLED = "E2E_WHEREABOUT_IPAM_ENABLED"
 	E2E_KIND_CLUSTER_NODE_LIST  = "E2E_KIND_CLUSTER_NODE_LIST"
+	E2E_Multus_DefaultCni       = "E2E_Multus_DefaultCni"
+	E2E_Multus_AdditionalCni    = "E2E_Multus_AdditionalCni"
 )
 
 var envConfigList = []envconfig{
+	// --- multus field
+	{EnvName: E2E_Multus_DefaultCni, DestStr: &clusterInfo.MultusDefaultCni, Default: "", Required: false},
+	{EnvName: E2E_Multus_AdditionalCni, DestStr: &clusterInfo.MultusAdditionalCni, Default: "", Required: false},
 	// --- require field
 	{EnvName: E2E_CLUSTER_NAME, DestStr: &clusterInfo.ClusterName, Default: "", Required: true},
 	{EnvName: E2E_KUBECONFIG_PATH, DestStr: &clusterInfo.KubeConfigPath, Default: "", Required: true},

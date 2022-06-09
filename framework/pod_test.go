@@ -91,8 +91,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e3).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("len of pods: %v", len(podList.Items))
 
-		// delete pod
-		e4 := f.DeletePod(podName, namespace)
+		// delete pod until finish
+		ctx5, cancel5 := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel5()
+		e4 := f.DeletePodUntilFinish(podName, namespace, ctx5)
 		Expect(e4).NotTo(HaveOccurred())
 
 		// the following are cases for testing pod list
@@ -208,5 +210,13 @@ var _ = Describe("test pod", Label("pod"), func() {
 		defer cancel3()
 		err9 := f.DeletePodListRepeatedly(nil, time.Second*2, ctx3)
 		Expect(err9).To(MatchError(e2e.ErrWrongInput))
+
+		// delete pod until finish, with invalid input
+		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second)
+		defer cancel4()
+		err10 := f.DeletePodUntilFinish("", namespace, ctx4)
+		Expect(err10).To(HaveOccurred())
+		err11 := f.DeletePodUntilFinish(podName, "", ctx4)
+		Expect(err11).To(HaveOccurred())
 	})
 })

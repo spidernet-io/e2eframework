@@ -4,6 +4,7 @@ package framework_test
 
 import (
 	"context"
+	"k8s.io/utils/pointer"
 
 	"time"
 
@@ -94,7 +95,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		// delete pod until finish
 		ctx5, cancel5 := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel5()
-		e4 := f.DeletePodUntilFinish(podName, namespace, ctx5)
+		opts5 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		e4 := f.DeletePodUntilFinish(podName, namespace, ctx5, opts5)
 		Expect(e4).NotTo(HaveOccurred())
 
 		// the following are cases for testing pod list
@@ -123,7 +127,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e7).NotTo(HaveOccurred())
 
 		// delete pod list
-		e8 := f.DeletePodList(podList1)
+		opts8 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		e8 := f.DeletePodList(podList1, opts8)
 		Expect(e8).NotTo(HaveOccurred())
 
 		// counter cases for testing pod list
@@ -156,7 +163,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		// delete podList repeatedly
 		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel4()
-		e13 := f.DeletePodListRepeatedly(label, time.Second*2, ctx4)
+		opts4 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		e13 := f.DeletePodListRepeatedly(label, time.Second*2, ctx4, opts4)
 		Expect(e13).To(BeNil())
 	})
 	It("counter example with wrong input", func() {
@@ -195,7 +205,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(ok1).To(BeFalse())
 
 		// UT cover delete pod list, input to be nil
-		err6 := f.DeletePodList(nil)
+		opts6 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		err6 := f.DeletePodList(nil, opts6)
 		Expect(err6).To(MatchError(e2e.ErrWrongInput))
 
 		// UT wait pod list running, input to be nil
@@ -208,15 +221,21 @@ var _ = Describe("test pod", Label("pod"), func() {
 
 		ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel3()
-		err9 := f.DeletePodListRepeatedly(nil, time.Second*2, ctx3)
+		opts3 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		err9 := f.DeletePodListRepeatedly(nil, time.Second*2, ctx3, opts3)
 		Expect(err9).To(MatchError(e2e.ErrWrongInput))
 
 		// delete pod until finish, with invalid input
 		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second)
 		defer cancel4()
-		err10 := f.DeletePodUntilFinish("", namespace, ctx4)
+		opts4 := &client.DeleteOptions{
+			GracePeriodSeconds: pointer.Int64(0),
+		}
+		err10 := f.DeletePodUntilFinish("", namespace, ctx4, opts4)
 		Expect(err10).To(HaveOccurred())
-		err11 := f.DeletePodUntilFinish(podName, "", ctx4)
+		err11 := f.DeletePodUntilFinish(podName, "", ctx4, opts4)
 		Expect(err11).To(HaveOccurred())
 	})
 })

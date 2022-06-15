@@ -29,7 +29,7 @@ var _ = Describe("test new Framework", Label("framework"), func() {
 	})
 
 	It("create framework", func() {
-		_, e := e2e.NewFramework(GinkgoT(), fakeClient)
+		_, e := e2e.NewFramework(GinkgoT(), nil, fakeClient)
 		Expect(e).NotTo(HaveOccurred())
 	})
 

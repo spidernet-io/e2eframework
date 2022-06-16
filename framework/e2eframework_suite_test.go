@@ -81,7 +81,7 @@ func fakeFramework() *e2e.Framework {
 	fakeClient := fakeClientSet()
 	Expect(fakeClient).NotTo(BeNil())
 
-	f, e := e2e.NewFramework(GinkgoT(), fakeClient)
+	f, e := e2e.NewFramework(GinkgoT(), nil, fakeClient)
 	Expect(e).NotTo(HaveOccurred())
 
 	return f

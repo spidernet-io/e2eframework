@@ -174,13 +174,13 @@ func (f *Framework) CheckPodListNotExistsByLabel(namespace string, label map[str
 	}
 }
 
-func (f *Framework) DeletePodUntilFinish(name, namespace string, ctx context.Context) error {
+func (f *Framework) DeletePodUntilFinish(name, namespace string, ctx context.Context, opts ...client.DeleteOption) error {
 	// Query all pods by name in namespace
 	// Delete the resource until the query is empty
 	if namespace == "" || name == "" {
 		return ErrWrongInput
 	}
-	err := f.DeletePod(name, namespace)
+	err := f.DeletePod(name, namespace, opts...)
 	if err != nil {
 		return err
 	}
@@ -243,12 +243,12 @@ func (f *Framework) CheckPodListRunning(podList *corev1.PodList) bool {
 	return true
 }
 
-func (f *Framework) DeletePodList(podList *corev1.PodList) error {
+func (f *Framework) DeletePodList(podList *corev1.PodList, opts ...client.DeleteOption) error {
 	if podList == nil {
 		return ErrWrongInput
 	}
 	for _, item := range podList.Items {
-		err := f.DeletePod(item.Name, item.Namespace)
+		err := f.DeletePod(item.Name, item.Namespace, opts...)
 		if err != nil {
 			return err
 		}
@@ -283,7 +283,7 @@ func (f *Framework) WaitPodListRunning(label map[string]string, expectedPodNum i
 	}
 }
 
-func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval time.Duration, ctx context.Context) error {
+func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval time.Duration, ctx context.Context, opts ...client.DeleteOption) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -293,7 +293,7 @@ func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval ti
 			if e1 != nil {
 				return e1
 			}
-			e2 := f.DeletePodList(podList)
+			e2 := f.DeletePodList(podList, opts...)
 			if e2 != nil {
 				return e2
 			}

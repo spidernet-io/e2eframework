@@ -4,9 +4,9 @@ package framework_test
 
 import (
 	"context"
-	"k8s.io/utils/pointer"
-
 	"time"
+
+	"k8s.io/utils/pointer"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

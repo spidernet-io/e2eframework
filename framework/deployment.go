@@ -161,3 +161,30 @@ func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Cont
 		}
 	}
 }
+
+func (f *Framework) WaitDeploymentReadyAndCheckIP(depName1 string, nsName1 string) (*corev1.PodList, error) {
+	// waiting for Deployment replicas to complete
+	ctx3, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	dep2, e := f.WaitDeploymentReady(depName1, nsName1, ctx3)
+	if e != nil {
+		return nil, e
+	}
+
+	// check pods created by Deployment，its assign ipv4 and ipv6 addresses success
+	podlist, err2 := f.GetDeploymentPodList(dep2)
+	if err2 != nil {
+		return nil, err2
+	}
+	if int32(len(podlist.Items)) == dep2.Status.ReadyReplicas {
+		f.Log("len(podlist.Items %vdep2.Status.ReadyReplicas=%v\n", int32(len(podlist.Items)), dep2.Status.ReadyReplicas)
+		// check IP address allocation succeeded
+		errip := f.CheckPodListIpReady(podlist)
+		if errip != nil {
+			return nil, errip
+		}
+		return podlist, errip
+	}
+	f.Log("podlist not found")
+	return podlist, err2
+}

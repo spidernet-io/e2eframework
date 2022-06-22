@@ -68,15 +68,16 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 	It("operate deployment", func() {
 		dpmName := "testDpm"
 		namespace := "default"
+		wrongDeployName := "xxx"
 		replica := int32(3)
 		readyReplica := int32(3)
 		scaleReplicas := int32(2)
 		wg.Add(1)
 		go func() {
 			defer GinkgoRecover()
-			// notice: WaitPodStarted use watch , but for the fake clientset,
-			// the watch have started before the pod ready, or else the watch will miss the event
-			// so we create the pod after WaitPodStarted
+			// notice: WaitDeploymentReady use watch , but for the fake clientset,
+			// the watch have started before the deployment ready, or else the watch will miss the event
+			// so we create the deployment after WaitDeploymentReady
 			// in the real environment, this issue does not exist
 			time.Sleep(2 * time.Second)
 			dpm := GenerateExampleDeploymentYaml(dpmName, namespace, replica, readyReplica)
@@ -98,7 +99,7 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		wg.Wait()
 
 		// get deployment
-		getDpm1, err3 := f.GetDeploymnet(dpmName, namespace)
+		getDpm1, err3 := f.GetDeployment(dpmName, namespace)
 		Expect(err3).NotTo(HaveOccurred())
 		Expect(getDpm1).NotTo(BeNil())
 
@@ -124,19 +125,16 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err6).To(HaveOccurred())
 		GinkgoWriter.Printf("failed creating a deployment with a same name: %v\n", dpmName)
 
-		// delete deployment
-		GinkgoWriter.Printf("delete deployment %v \n", dpmName)
-		err7 := f.DeleteDeployment(dpmName, namespace)
+		// delete deployment util finish
+		GinkgoWriter.Printf("delete deployment %v/%v util finish\n", namespace, dpmName)
+		err7 := f.DeleteDeploymentUntilFinish(dpmName, namespace, time.Minute)
 		Expect(err7).NotTo(HaveOccurred())
-		GinkgoWriter.Printf("%v deleted successfully \n", dpmName)
+		GinkgoWriter.Printf("%v/%v deleted successfully\n", namespace, dpmName)
 
-		// wait deployment replicas until delete Complete
-		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel2()
-		GinkgoWriter.Printf("wait deployment %v replicas until delete Complete \n", dpmName)
-		err8 := f.CheckPodListNotExistsByLabel(namespace, dpm.Spec.Selector.MatchLabels, ctx2)
-		Expect(err8).NotTo(HaveOccurred())
-		GinkgoWriter.Printf("%v all replicas deleted successfully \n", dpmName)
+		// delete deployment util finish, with wrong deploymentName
+		GinkgoWriter.Printf("delete wrong deployment %v/%v\n", namespace, wrongDeployName)
+		err8 := f.DeleteDeploymentUntilFinish(wrongDeployName, namespace, time.Second)
+		Expect(err8).To(HaveOccurred())
 	})
 
 	It("counter example with wrong input", func() {
@@ -159,10 +157,10 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err2).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover get deployment name/namespace input to be empty
-		getdpm3, err3 := f.GetDeploymnet("", namespace)
+		getdpm3, err3 := f.GetDeployment("", namespace)
 		Expect(getdpm3).To(BeNil())
 		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
-		getdpm3, err3 = f.GetDeploymnet(dpmName, "")
+		getdpm3, err3 = f.GetDeployment(dpmName, "")
 		Expect(getdpm3).To(BeNil())
 		Expect(err3).Should(MatchError(e2e.ErrWrongInput))
 
@@ -183,9 +181,20 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err6).Should(MatchError(e2e.ErrWrongInput))
 
 		// UT cover wait delete until complete with wrong input
-		err7 := f.CheckPodListNotExistsByLabel("", dpm.Spec.Selector.MatchLabels, ctx1)
+		err7 := f.WaitPodListDeleted("", dpm.Spec.Selector.MatchLabels, ctx1)
 		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
-		err7 = f.CheckPodListNotExistsByLabel(namespace, nil, ctx1)
+		err7 = f.WaitPodListDeleted(namespace, nil, ctx1)
 		Expect(err7).Should(MatchError(e2e.ErrWrongInput))
+
+		// UT cover create deployment util ready
+		deploy8, err8 := f.CreateDeploymentUntilReady(nil, time.Second*30)
+		Expect(err8).Should(MatchError(e2e.ErrWrongInput))
+		Expect(deploy8).To(BeNil())
+
+		// UT cover delete deployment util finish
+		err9 := f.DeleteDeploymentUntilFinish("", namespace, time.Second*30)
+		Expect(err9).Should(MatchError(e2e.ErrWrongInput))
+		err9 = f.DeleteDeploymentUntilFinish(dpmName, "", time.Second*30)
+		Expect(err9).Should(MatchError(e2e.ErrWrongInput))
 	})
 })

@@ -224,3 +224,26 @@ func (f *Framework) DeleteDeploymentUntilFinish(deployName, namespace string, ti
 	}
 	return e
 }
+
+func (f *Framework) WaitDeploymentReadyAndCheckIP(depName string, nsName string, timeout time.Duration) (*corev1.PodList, error) {
+	// waiting for Deployment replicas to complete
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	dep, e := f.WaitDeploymentReady(depName, nsName, ctx)
+	if e != nil {
+		return nil, e
+	}
+
+	// check pods created by Deployment，its assign ipv4 and ipv6 addresses success
+	podlist, err := f.GetDeploymentPodList(dep)
+	if err != nil {
+		return nil, err
+	}
+
+	// check IP address allocation succeeded
+	errip := f.CheckPodListIpReady(podlist)
+	if errip != nil {
+		return nil, errip
+	}
+	return podlist, errip
+}

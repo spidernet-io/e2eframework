@@ -89,12 +89,10 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 			wg.Done()
 		}()
 
-		// wait deployment ready
-		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel1()
-		dpm, err2 := f.WaitDeploymentReady(dpmName, namespace, ctx1)
-		Expect(err2).NotTo(HaveOccurred())
-		Expect(dpm).NotTo(BeNil())
+		// check wait deployment ready and check ip assign
+		podList, errip := f.WaitDeploymentReadyAndCheckIP(dpmName, namespace, time.Second*30)
+		Expect(errip).NotTo(HaveOccurred())
+		Expect(podList).NotTo(BeNil())
 
 		wg.Wait()
 
@@ -103,25 +101,19 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err3).NotTo(HaveOccurred())
 		Expect(getDpm1).NotTo(BeNil())
 
-		// get deployment pod list
-		GinkgoWriter.Println("get deployment pod list")
-		podList, err4 := f.GetDeploymentPodList(dpm)
-		Expect(podList).NotTo(BeNil())
-		Expect(err4).NotTo(HaveOccurred())
-
 		// check pod ipv4 ipv6
-		err4 = f.CheckPodListIpReady(podList)
+		err4 := f.CheckPodListIpReady(podList)
 		Expect(err4).NotTo(HaveOccurred())
 
 		// scale deployment
 		GinkgoWriter.Println("scale deployment")
-		getDpm2, err5 := f.ScaleDeployment(dpm, scaleReplicas)
+		getDpm2, err5 := f.ScaleDeployment(getDpm1, scaleReplicas)
 		Expect(getDpm2).NotTo(BeNil())
 		Expect(err5).NotTo(HaveOccurred())
 
 		// create a deployment with a same name
 		GinkgoWriter.Println("create a deployment with a same name")
-		err6 := f.CreateDeployment(dpm)
+		err6 := f.CreateDeployment(getDpm1)
 		Expect(err6).To(HaveOccurred())
 		GinkgoWriter.Printf("failed creating a deployment with a same name: %v\n", dpmName)
 
@@ -196,5 +188,10 @@ var _ = Describe("test deployment", Label("deployment"), func() {
 		Expect(err9).Should(MatchError(e2e.ErrWrongInput))
 		err9 = f.DeleteDeploymentUntilFinish(dpmName, "", time.Second*30)
 		Expect(err9).Should(MatchError(e2e.ErrWrongInput))
+
+		// UT cover wait deployment ready and check ip assign ok
+		podList, errip := f.WaitDeploymentReadyAndCheckIP("", "", time.Second*10)
+		Expect(errip).Should(MatchError(e2e.ErrWrongInput))
+		Expect(podList).To(BeNil())
 	})
 })

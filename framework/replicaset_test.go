@@ -75,9 +75,9 @@ var _ = Describe("test ReplicaSet", Label("ReplicaSet"), func() {
 		wg.Add(1)
 		go func() {
 			defer GinkgoRecover()
-			// notice: WaitPodStarted use watch , but for the fake clientset,
+			// notice: WaitReplicaSetReady use watch , but for the fake clientset,
 			// the watch have started before the pod ready, or else the watch will miss the event
-			// so we create the pod after WaitPodStarted
+			// so we create the pod after WaitReplicaSetReady
 			// in the real environment, this issue does not exist
 			time.Sleep(2 * time.Second)
 			rs := GenerateExampleReplicaSetYaml(rsName, namespace, replica, readyReplica)

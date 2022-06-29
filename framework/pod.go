@@ -313,3 +313,29 @@ func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval ti
 		}
 	}
 }
+
+func (f *Framework) DeletePodListUntilReady(podList *corev1.PodList, timeOut time.Duration, opts ...client.DeleteOption) (*corev1.PodList, error) {
+	if podList == nil {
+		return nil, ErrWrongInput
+	}
+
+	err := f.DeletePodList(podList, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
+	defer cancel()
+	err = f.WaitPodListRunning(podList.Items[0].Labels, len(podList.Items), ctx)
+	if err != nil {
+		return nil, err
+	}
+	l, err := f.GetPodListByLabel(podList.Items[0].Labels)
+	if err != nil {
+		return nil, err
+	}
+	if len(l.Items) != len(podList.Items) {
+		return nil, ErrTimeOut
+	}
+	return podList, nil
+}

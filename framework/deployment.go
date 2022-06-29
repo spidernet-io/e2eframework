@@ -4,6 +4,7 @@ package framework
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/spidernet-io/e2eframework/tools"
@@ -246,4 +247,31 @@ func (f *Framework) WaitDeploymentReadyAndCheckIP(depName string, nsName string,
 		return nil, errip
 	}
 	return podlist, errip
+}
+
+func (f *Framework) RestartDeploymentPodUntilReady(deployName, namespace string, timeOut time.Duration, opts ...client.DeleteOption) error {
+	if deployName == "" || namespace == "" {
+		return ErrWrongInput
+	}
+
+	deployment, err := f.GetDeployment(deployName, namespace)
+	if deployment == nil {
+		return errors.New("failed to get deployment")
+	}
+	if err != nil {
+		return err
+	}
+	podList, err := f.GetDeploymentPodList(deployment)
+
+	if len(podList.Items) == 0 {
+		return errors.New("failed to get podList")
+	}
+	if err != nil {
+		return err
+	}
+	_, err = f.DeletePodListUntilReady(podList, timeOut, opts...)
+	if err != nil {
+		return err
+	}
+	return nil
 }

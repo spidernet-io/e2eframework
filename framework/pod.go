@@ -347,8 +347,11 @@ OUTER:
 			continue
 		}
 
-		for _, oldPod := range podList.Items {
-			for _, newPod := range l.Items {
+		for _, newPod := range l.Items {
+			if newPod.Status.Phase != corev1.PodRunning || newPod.DeletionTimestamp != nil {
+				continue OUTER
+			}
+			for _, oldPod := range podList.Items {
 				if newPod.Name == oldPod.Name {
 					continue OUTER
 				}

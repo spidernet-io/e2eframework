@@ -82,9 +82,15 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e1).NotTo(HaveOccurred())
 		Expect(pod).NotTo(BeNil())
 
+		// update pod status
+		GinkgoWriter.Printf("update pod %v/%v status\n", namespace, podName)
+		pod.Status.Phase = corev1.PodRunning
+		Expect(f.UpdateResourceStatus(pod)).To(Succeed(), "failed to update pod %v/%v status\n", namespace, podName)
+
 		// get pod
 		getPod, e2 := f.GetPod(podName, namespace)
 		Expect(e2).NotTo(HaveOccurred())
+		Expect(getPod.Status.Phase).To(Equal(corev1.PodRunning), "failed to update pod %v/%v status\n", namespace, podName)
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
 
 		// get pod list

@@ -30,35 +30,35 @@ var _ = Describe("ServiceAccounts", Label("ServiceAccounts"), func() {
 		errSaName = "test-errSaName"
 
 		// generate example serviceaccount obj
-		saObj := generateExampleServiceAccountObj(saName, namespace)
+		saObj := GenerateExampleServiceAccountObj(saName, namespace)
 		Expect(saObj).NotTo(BeNil())
 		GinkgoWriter.Printf("saObj=%v/%v\n", saObj.Namespace, saObj.Name)
 
 		// create service account
-		Expect(createServiceAccount(f, saObj)).To(Succeed(), "failed to create serviceAccount %v%v\n", namespace, saName)
+		Expect(CreateServiceAccount(f, saObj)).To(Succeed(), "failed to create serviceAccount %v%v\n", namespace, saName)
 	})
 
 	It("check service accounts ready", func() {
 		// check service accounts ready
-		Expect(f.CheckServiceAccountReady(saName, namespace, time.Second*10)).To(Succeed(), "timeout to wait service accounts %v ready\n", saName)
+		Expect(f.WaitServiceAccountReady(saName, namespace, time.Second*10)).To(Succeed(), "timeout to wait service accounts %v ready\n", saName)
 
 		// check service accounts ready with counter example
 
-		err := f.CheckServiceAccountReady(errSaName, namespace, time.Second)
+		err := f.WaitServiceAccountReady(errSaName, namespace, time.Second)
 		Expect(err).Should(MatchError(e2e.ErrTimeOut))
 	})
 
 	// counter example with wrong input
 	It("counter example with wrong input", func() {
-		err := f.CheckServiceAccountReady("", namespace, time.Second*10)
+		err := f.WaitServiceAccountReady("", namespace, time.Second*10)
 		Expect(err).Should(MatchError(e2e.ErrWrongInput))
 
-		err = f.CheckServiceAccountReady(saName, "", time.Second*10)
+		err = f.WaitServiceAccountReady(saName, "", time.Second*10)
 		Expect(err).Should(MatchError(e2e.ErrWrongInput))
 	})
 })
 
-func createServiceAccount(f *e2e.Framework, serviceaccount *corev1.ServiceAccount, opts ...client.CreateOption) error {
+func CreateServiceAccount(f *e2e.Framework, serviceaccount *corev1.ServiceAccount, opts ...client.CreateOption) error {
 	// try to wait for finish last deleting
 	fake := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
@@ -89,7 +89,7 @@ func createServiceAccount(f *e2e.Framework, serviceaccount *corev1.ServiceAccoun
 	return f.CreateResource(serviceaccount, opts...)
 }
 
-func generateExampleServiceAccountObj(saName, namespace string) *corev1.ServiceAccount {
+func GenerateExampleServiceAccountObj(saName, namespace string) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,

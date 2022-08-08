@@ -174,7 +174,14 @@ var _ = Describe("test pod", Label("pod"), func() {
 		}
 		e13 := f.DeletePodListRepeatedly(label, time.Second*2, ctx4, opts4)
 		Expect(e13).To(BeNil())
+
+		// wait components running
+		ctx6, cancel6 := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel6()
+		e14 := f.WaitNamespacePodRunning("kube-system", ctx6)
+		Expect(e14).To(BeNil())
 	})
+
 	It("counter example with wrong input", func() {
 
 		// failed wait pod ready with wrong input name/namespace to be empty
@@ -243,5 +250,12 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(err10).To(HaveOccurred())
 		err11 := f.DeletePodUntilFinish(podName, "", ctx4, opts4)
 		Expect(err11).To(HaveOccurred())
+
+		// wait components running
+		ctx6, cancel6 := context.WithTimeout(context.Background(), 0)
+		defer cancel6()
+		e14 := f.WaitNamespacePodRunning("", ctx6)
+		Expect(e14).To(HaveOccurred())
+		Expect(e14).Should(MatchError(e2e.ErrTimeOut))
 	})
 })

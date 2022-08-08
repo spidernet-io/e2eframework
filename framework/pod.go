@@ -360,3 +360,25 @@ OUTER:
 		return l, nil
 	}
 }
+
+func (frame *Framework) WaitNamespacePodRunning(ns string, ctx context.Context) error {
+	for {
+		select {
+		default:
+			opts := []client.ListOption{
+				client.InNamespace(ns),
+			}
+			podlistkube, errget := frame.GetPodList(opts...)
+			if errget != nil {
+				return errget
+			}
+			if frame.CheckPodListRunning(podlistkube) {
+				return nil
+			}
+
+			time.Sleep(time.Second)
+		case <-ctx.Done():
+			return ErrTimeOut
+		}
+	}
+}

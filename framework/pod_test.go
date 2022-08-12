@@ -116,6 +116,10 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(e5).NotTo(HaveOccurred())
 		GinkgoWriter.Printf("finish creating pod %v/%v \n", namespace, podName)
 
+		// Waiting for all pods in all namespaces to run
+		e := f.WaitAllPodUntilRunning(ctx1)
+		Expect(e).NotTo(HaveOccurred())
+
 		// get pod list by label
 		podList1, e6 := f.GetPodListByLabel(label)
 		Expect(podList1).NotTo(BeNil())

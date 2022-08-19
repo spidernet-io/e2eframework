@@ -127,6 +127,13 @@ var _ = Describe("unit test DaemonSet", Label("DaemonSet"), func() {
 		namespace := "ns-ds"
 		var dsNil *appsv1.DaemonSet = nil
 
+		// Failed create Deployment util ready with wrong input
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel()
+		ds1, e1 := f.CreateDaemonsetUntilReady(ctx, nil)
+		Expect(e1).Should(MatchError(e2e.ErrWrongInput))
+		Expect(ds1).To(BeNil())
+
 		// failed wait DaemonSet ready with wrong input
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel1()

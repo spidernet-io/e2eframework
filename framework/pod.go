@@ -202,6 +202,10 @@ func (f *Framework) CheckPodListIpReady(podList *corev1.PodList) error {
 	var v4IpList = make(map[string]string)
 	var v6IpList = make(map[string]string)
 
+	if len(podList.Items) == 0 {
+		return ErrEmptyPodList
+	}
+
 	for _, pod := range podList.Items {
 		if pod.Status.PodIPs == nil {
 			return fmt.Errorf("pod %v failed to assign ip", pod.Name)
@@ -247,6 +251,11 @@ func (f *Framework) CheckPodListRunning(podList *corev1.PodList) bool {
 	if podList == nil {
 		return false
 	}
+
+	if len(podList.Items) == 0 {
+		return false
+	}
+
 	for _, item := range podList.Items {
 		if item.Status.Phase != "Running" {
 			return false
@@ -319,6 +328,10 @@ func (f *Framework) DeletePodListUntilReady(podList *corev1.PodList, timeOut tim
 		return nil, ErrWrongInput
 	}
 
+	if len(podList.Items) == 0 {
+		return nil, ErrEmptyPodList
+	}
+
 	err := f.DeletePodList(podList, opts...)
 	if err != nil {
 		f.Log("failed to DeletePodList")
@@ -337,17 +350,17 @@ OUTER:
 		}
 		f.Log("checking restarted pod ")
 
-		l, err := f.GetPodListByLabel(podList.Items[0].Labels)
+		podLabel, err := f.GetPodListByLabel(podList.Items[0].Labels)
 		if err != nil {
 			f.Log("failed to GetPodListByLabel , reason=%v", err)
 			continue
 		}
 
-		if len(l.Items) != len(podList.Items) {
+		if len(podLabel.Items) != len(podList.Items) {
 			continue
 		}
 
-		for _, newPod := range l.Items {
+		for _, newPod := range podLabel.Items {
 			if newPod.Status.Phase != corev1.PodRunning || newPod.DeletionTimestamp != nil {
 				continue OUTER
 			}
@@ -357,7 +370,7 @@ OUTER:
 				}
 			}
 		}
-		return l, nil
+		return podLabel, nil
 	}
 }
 

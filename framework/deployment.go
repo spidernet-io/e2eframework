@@ -87,21 +87,30 @@ func (f *Framework) GetDeployment(name, namespace string) (*appsv1.Deployment, e
 }
 
 func (f *Framework) GetDeploymentPodList(dpm *appsv1.Deployment) (*corev1.PodList, error) {
-
 	if dpm == nil {
 		return nil, ErrWrongInput
 	}
 
 	pods := &corev1.PodList{}
-	opts := []client.ListOption{
-		client.MatchingLabelsSelector{
-			Selector: labels.SelectorFromSet(dpm.Spec.Selector.MatchLabels),
-		},
+
+	for {
+		opts := []client.ListOption{
+			client.MatchingLabelsSelector{
+				Selector: labels.SelectorFromSet(dpm.Spec.Selector.MatchLabels),
+			},
+		}
+		e := f.ListResource(pods, opts...)
+		if e != nil {
+			return nil, e
+		}
+
+		if len(pods.Items) != int(dpm.Status.Replicas) {
+			continue
+		}
+
+		break
 	}
-	e := f.ListResource(pods, opts...)
-	if e != nil {
-		return nil, e
-	}
+
 	return pods, nil
 }
 
@@ -119,7 +128,6 @@ func (f *Framework) ScaleDeployment(dpm *appsv1.Deployment, replicas int32) (*ap
 }
 
 func (f *Framework) WaitDeploymentReady(name, namespace string, ctx context.Context) (*appsv1.Deployment, error) {
-
 	if name == "" || namespace == "" {
 		return nil, ErrWrongInput
 	}

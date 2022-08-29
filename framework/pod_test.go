@@ -93,6 +93,12 @@ var _ = Describe("test pod", Label("pod"), func() {
 		Expect(getPod.Status.Phase).To(Equal(corev1.PodRunning), "failed to update pod %v/%v status\n", namespace, podName)
 		GinkgoWriter.Printf("get pod: %+v \n", getPod)
 
+		// exec command in pod
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		_, err := f.ExecCommandInPod(podName, namespace, "ls", ctx)
+		Expect(err).To(HaveOccurred())
+
 		// get pod list
 		podList, e3 := f.GetPodList(&client.ListOptions{Namespace: namespace})
 		Expect(e3).NotTo(HaveOccurred())

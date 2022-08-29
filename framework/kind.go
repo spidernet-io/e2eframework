@@ -13,3 +13,8 @@ func (f *Framework) ExecKubectl(command string, ctx context.Context) ([]byte, er
 	args := fmt.Sprintf("kubectl --kubeconfig %s %s", f.Info.KubeConfigPath, command)
 	return exec.CommandContext(ctx, "sh", "-c", args).CombinedOutput()
 }
+
+func (f *Framework) ExecCommandInPod(podName, nameSpace, command string, ctx context.Context) ([]byte, error) {
+	command = fmt.Sprintf("exec %s -n %s -- %s", podName, nameSpace, command)
+	return f.ExecKubectl(command, ctx)
+}

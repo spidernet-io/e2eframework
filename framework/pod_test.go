@@ -87,6 +87,11 @@ var _ = Describe("test pod", Label("pod"), func() {
 		pod.Status.Phase = corev1.PodRunning
 		Expect(f.UpdateResourceStatus(pod)).To(Succeed(), "failed to update pod %v/%v status\n", namespace, podName)
 
+		// patch pod
+		GinkgoWriter.Printf("patch pod %v/%v \n", namespace, podName)
+		mergePatch := client.MergeFrom(pod)
+		Expect(f.PatchResource(pod, mergePatch)).To(Succeed(), "failed to patch pod %v/%v \n", namespace, podName)
+
 		// get pod
 		getPod, e2 := f.GetPod(podName, namespace)
 		Expect(e2).NotTo(HaveOccurred())

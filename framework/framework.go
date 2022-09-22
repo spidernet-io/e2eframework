@@ -234,9 +234,15 @@ func (f *Framework) UpdateResource(obj client.Object, opts ...client.UpdateOptio
 }
 
 func (f *Framework) UpdateResourceStatus(obj client.Object, opts ...client.UpdateOption) error {
-	ctx, cancel := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
-	defer cancel()
-	return f.KClient.Status().Update(ctx, obj, opts...)
+	ctx6, cancel6 := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
+	defer cancel6()
+	return f.KClient.Status().Update(ctx6, obj, opts...)
+}
+
+func (f *Framework) PatchResource(obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
+	ctx7, cancel7 := context.WithTimeout(context.Background(), f.Config.ApiOperateTimeout)
+	defer cancel7()
+	return f.KClient.Patch(ctx7, obj, patch, opts...)
 }
 
 func initClusterInfo() error {

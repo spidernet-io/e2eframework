@@ -28,7 +28,7 @@ jobs:
           echo "CODE_LINES=${CODE_LINES}" >> $GITHUB_ENV
 
       - name: Create Lines-of-Code-Badge
-        uses: schneegans/dynamic-badges-action@v1.4.0
+        uses: schneegans/dynamic-badges-action@v1.5.0
         with:
           auth: ${{ secrets.WELAN_PAT }}
           gistID: 2009b7c07bf36b367f0b87e4dda78391

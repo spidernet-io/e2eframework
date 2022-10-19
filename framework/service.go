@@ -3,14 +3,10 @@
 package framework
 
 import (
-	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/types"
-	"time"
-
-	"github.com/spidernet-io/e2eframework/tools"
 	corev1 "k8s.io/api/core/v1"
-	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -27,20 +23,6 @@ func (f *Framework) CreateService(service *corev1.Service, opts ...client.Create
 	e := f.GetResource(key, existing)
 	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
 		return fmt.Errorf("failed to create , a same service %v/%v exists", service.ObjectMeta.Namespace, service.ObjectMeta.Name)
-	} else {
-		t := func() bool {
-			existing := &corev1.Pod{}
-			e := f.GetResource(key, existing)
-			b := api_errors.IsNotFound(e)
-			if !b {
-				f.Log("waiting for a same service %v/%v to finish deleting \n", service.ObjectMeta.Namespace, service.ObjectMeta.Name)
-				return false
-			}
-			return true
-		}
-		if !tools.Eventually(t, f.Config.ResourceDeleteTimeout, time.Second) {
-			return ErrTimeOut
-		}
 	}
 	return f.CreateResource(service, opts...)
 }
@@ -54,32 +36,29 @@ func (f *Framework) GetService(name, namespace string) (*corev1.Service, error) 
 		Namespace: namespace,
 	}
 	service := &corev1.Service{}
-	err := f.GetResource(key, service)
+	return service, f.GetResource(key, service)
+}
+
+func (f *Framework) ListService(options ...client.ListOption) (*corev1.ServiceList, error) {
+	services := &corev1.ServiceList{}
+	err := f.ListResource(services, options...)
 	if err != nil {
 		return nil, err
 	}
-	return service, nil
+	return services, nil
 }
 
-func (f *Framework) WaitServiceReady(name, namespace string, timeout time.Duration) error {
+func (f *Framework) DeleteService(name, namespace string, opts ...client.DeleteOption) error {
+
 	if name == "" || namespace == "" {
 		return ErrWrongInput
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	for {
-		select {
-		case <-ctx.Done():
-			return ErrTimeOut
-		default:
-			service, err := f.GetService(name, namespace)
-			if err != nil {
-				return err
-			}
-			if service != nil {
-				return nil
-			}
-			time.Sleep(time.Second)
-		}
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
 	}
+	return f.DeleteResource(service, opts...)
 }

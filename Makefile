@@ -81,6 +81,7 @@ fix-code-spell:
 .PHONY: unitest-tests
 unitest-tests:
 	@echo "run unitest-tests"
+	docker images
 	$(QUIET) $(ROOT_DIR)/scripts/ginkgo.sh   \
 		--cover --coverprofile=./coverage.out --covermode set  \
 		--json-report unitestreport.json \

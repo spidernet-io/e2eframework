@@ -5,13 +5,13 @@ package framework_test
 import (
 	"testing"
 
-	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	batchv1 "k8s.io/api/batch/v1"
 
+	multus_v1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -40,11 +40,13 @@ func fakeClientSet() client.WithWatch {
 	Expect(err).NotTo(HaveOccurred())
 	err = apiextensions_v1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
-	return fake.NewClientBuilder().WithScheme(scheme).Build()
+	err = multus_v1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	return fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&multus_v1.NetworkAttachmentDefinition{}).Build()
 }
 
 func fakeKubeConfig() *os.File {
-	file, err := ioutil.TempFile("", "unitest")
+	file, err := os.CreateTemp("", "unitest")
 	Expect(err).NotTo(HaveOccurred())
 	// /var/folders/zk/13j3111s12n04r0pcx_sky_w0000gn/T/unitest1183784803
 	GinkgoWriter.Printf("fake a kubeconfig file %v", file.Name())

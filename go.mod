@@ -6,8 +6,8 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
-	github.com/onsi/ginkgo/v2 v2.8.3
-	github.com/onsi/gomega v1.27.0
+	github.com/onsi/ginkgo/v2 v2.9.0
+	github.com/onsi/gomega v1.27.3
 	k8s.io/api v0.25.0
 	k8s.io/apiextensions-apiserver v0.25.0
 	k8s.io/apimachinery v0.25.0
@@ -29,7 +29,7 @@ require (
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect

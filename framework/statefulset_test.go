@@ -26,7 +26,7 @@ func generateExampleStatefulSetYaml(stsName, namespace string, replica int32) *a
 			Name:      stsName,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: pointer.Int32Ptr(replica),
+			Replicas: pointer.Int32(replica),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": stsName,

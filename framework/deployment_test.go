@@ -26,7 +26,7 @@ func GenerateExampleDeploymentYaml(dpmName, namespace string, replica, readyRepl
 			Name:      dpmName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: pointer.Int32Ptr(replica),
+			Replicas: pointer.Int32(replica),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": dpmName,

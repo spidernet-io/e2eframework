@@ -1,6 +1,6 @@
 module github.com/spidernet-io/e2eframework
 
-go 1.19
+go 1.20
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a

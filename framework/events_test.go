@@ -121,6 +121,10 @@ var _ = Describe("test events", Label("events"), func() {
 		e2 := f.WaitExceptEventOccurred(ctx2, eventKind, podName, namespace, nonExistingMessage)
 		Expect(e2).To(HaveOccurred())
 
+		// get all events
+		_, err := f.GetEvents(context.Background(), eventKind, podName, namespace)
+		Expect(err).NotTo(HaveOccurred())
+
 		// delete pod
 		e3 := f.DeletePod(podName, namespace)
 		Expect(e3).NotTo(HaveOccurred())
@@ -144,4 +148,5 @@ var _ = Describe("test events", Label("events"), func() {
 		Expect(e7).To(HaveOccurred())
 		Expect(e7).Should(MatchError(e2e.ErrWrongInput))
 	})
+
 })

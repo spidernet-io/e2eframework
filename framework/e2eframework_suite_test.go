@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	spiderv2beta1 "github.com/spidernet-io/spiderpool/pkg/k8s/apis/spiderpool.spidernet.io/v2beta1"
 	batchv1 "k8s.io/api/batch/v1"
 
 	multus_v1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -42,6 +43,9 @@ func fakeClientSet() client.WithWatch {
 	Expect(err).NotTo(HaveOccurred())
 	err = multus_v1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
+	err = spiderv2beta1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	return fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&multus_v1.NetworkAttachmentDefinition{}).Build()
 }
 

@@ -7,7 +7,7 @@ require (
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.4.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo/v2 v2.11.0
-	github.com/onsi/gomega v1.27.8
+	github.com/onsi/gomega v1.27.9
 	github.com/spidernet-io/spiderpool v0.6.0-rc2.0.20230720061313-b95dad857e30
 	k8s.io/api v0.26.3
 	k8s.io/apiextensions-apiserver v0.26.3

@@ -31,6 +31,8 @@ const (
 	KindReplicaSet  = "ReplicaSet"
 	KindJob         = "Job"
 	KindCronJob     = "CronJob"
+	KindKubevirtVM  = "VirtualMachine"
+	KindKubevirtVMI = "VirtualMachineInstance"
 )
 
 var K8sKinds = []string{KindPod, KindDeployment, KindReplicaSet, KindDaemonSet, KindStatefulSet, KindJob, KindCronJob}
@@ -143,4 +145,13 @@ const (
 	MultusDefaultNetAnnot        = "v1.multus-cni.io/default-network"
 	MultusNetworkAttachmentAnnot = "k8s.v1.cni.cncf.io/networks"
 	ResourceNameAnnot            = "k8s.v1.cni.cncf.io/resourceName"
+	ResourceNameOvsCniValue      = "ovs-cni.network.kubevirt.io"
+)
+
+const (
+	MacvlanCNI = "macvlan"
+	IPVlanCNI  = "ipvlan"
+	SriovCNI   = "sriov"
+	OvsCNI     = "ovs"
+	CustomCNI  = "custom"
 )

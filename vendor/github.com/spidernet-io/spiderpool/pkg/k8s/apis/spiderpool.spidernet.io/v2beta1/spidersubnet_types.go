@@ -25,8 +25,8 @@ type SubnetSpec struct {
 	// +kubebuilder:validation:Optional
 	Gateway *string `json:"gateway,omitempty"`
 
-	// +kubebuilder:default=0
-	// +kubebuilder:validation:Maximum=4095
+	// DEPRECATED: Vlan is deprecated.
+	// +kubebuilder:validation:Maximum=4094
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Optional
 	Vlan *int64 `json:"vlan,omitempty"`

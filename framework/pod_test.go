@@ -67,7 +67,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 			// in the real environment, this issue does not exist
 			time.Sleep(2 * time.Second)
 			// generate pod yaml
-			pod := generateExamplePodYaml(podName, namespace, label, "")
+			pod := generateExamplePodYaml(podName, namespace, label, "Running")
 
 			// create pod
 			e := f.CreatePod(pod)

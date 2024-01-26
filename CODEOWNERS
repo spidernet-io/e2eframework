@@ -1,17 +1,17 @@
-*  @weizhouBlue @lou-lan
-/.github/ @weizhoublue
-/example/ @weizhoublue
-/scripts/ @weizhoublue
-/tools/ @weizhoublue @ty-dc
-/vendor/ @weizhoublue
-/.gitignore @weizhoublue
-/.golangci.yaml @weizhoublue
-/.licenserc.yaml @weizhoublue
-/codecov.yml @weizhoublue
-/CODEOWNERS @weizhoublue
-/LICENSE @weizhoublue
-/Makefile* @weizhoublue
-/README.md @weizhoublue
-/go.sum @weizhoublue
-/go.mod @weizhoublue
-/framework/ @weizhoublue @ty-dc
+*  @weizhouBlue @lou-lan @cyclinder @ty-dc @Icarus9913
+/.github/ @weizhoublue @cyclinder @ty-dc @Icarus9913
+/example/ @weizhoublue @cyclinder @ty-dc @Icarus9913
+/scripts/ @weizhoublue @cyclinder @ty-dc @Icarus9913
+/tools/ @weizhoublue @ty-dc @cyclinder @Icarus9913
+/vendor/ @weizhoublue @cyclinder @ty-dc @Icarus9913
+/.gitignore @weizhoublue @cyclinder @ty-dc @Icarus9913
+/.golangci.yaml @weizhoublue @cyclinder @ty-dc @Icarus9913
+/.licenserc.yaml @weizhoublue @cyclinder @ty-dc @Icarus9913
+/codecov.yml @weizhoublue @cyclinder @ty-dc @Icarus9913
+/CODEOWNERS @weizhoublue @cyclinder @ty-dc @Icarus9913
+/LICENSE @weizhoublue @cyclinder @ty-dc @Icarus9913
+/Makefile* @weizhoublue @cyclinder @ty-dc @Icarus9913
+/README.md @weizhoublue @cyclinder @ty-dc @Icarus9913
+/go.sum @weizhoublue @cyclinder @ty-dc @Icarus9913
+/go.mod @weizhoublue @cyclinder @ty-dc @Icarus9913
+/framework/ @weizhoublue @ty-dc @cyclinder @Icarus9913

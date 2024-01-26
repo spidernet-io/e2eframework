@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -113,7 +113,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 		ctx5, cancel5 := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel5()
 		opts5 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		e4 := f.DeletePodUntilFinish(podName, namespace, ctx5, opts5)
 		Expect(e4).NotTo(HaveOccurred())
@@ -149,7 +149,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 
 		// delete pod list
 		opts8 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		e8 := f.DeletePodList(podList1, opts8)
 		Expect(e8).NotTo(HaveOccurred())
@@ -185,7 +185,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel4()
 		opts4 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		e13 := f.DeletePodListRepeatedly(label, time.Second*2, ctx4, opts4)
 		Expect(e13).To(BeNil())
@@ -227,7 +227,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 
 		// UT cover delete pod list, input to be nil
 		opts6 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		err6 := f.DeletePodList(nil, opts6)
 		Expect(err6).To(MatchError(e2e.ErrWrongInput))
@@ -243,7 +243,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 		ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel3()
 		opts3 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		err9 := f.DeletePodListRepeatedly(nil, time.Second*2, ctx3, opts3)
 		Expect(err9).To(MatchError(e2e.ErrWrongInput))
@@ -252,7 +252,7 @@ var _ = Describe("test pod", Label("pod"), func() {
 		ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second)
 		defer cancel4()
 		opts4 := &client.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}
 		err10 := f.DeletePodUntilFinish("", namespace, ctx4, opts4)
 		Expect(err10).To(HaveOccurred())

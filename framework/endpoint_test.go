@@ -8,7 +8,7 @@ import (
 	e2e "github.com/spidernet-io/e2eframework/framework"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func generateExampleEndpointYaml(name, namespace string, labels map[string]string) *v1.Endpoints {
@@ -23,7 +23,7 @@ func generateExampleEndpointYaml(name, namespace string, labels map[string]strin
 				Addresses: []v1.EndpointAddress{
 					{
 						IP:       "dummy_ip",
-						NodeName: pointer.String("kind-test"),
+						NodeName: ptr.To("kind-test"),
 						TargetRef: &v1.ObjectReference{
 							Kind:      "Pod",
 							Name:      name,

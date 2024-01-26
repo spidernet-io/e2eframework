@@ -13,7 +13,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func generateExampleJobYaml(jbName, namespace string, active int32, parallelism *int32) *batchv1.Job {
@@ -68,7 +68,7 @@ var _ = Describe("unit test Job", Label("Job"), func() {
 	It("operate Job", func() {
 		jbName := "testjb"
 		namespace := "ns-jb"
-		Parallelism := pointer.Int32(3)
+		Parallelism := ptr.To(int32(3))
 
 		wg.Add(1)
 		go func() {

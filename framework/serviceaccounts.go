@@ -4,9 +4,12 @@ package framework
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"fmt"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	api_errors "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (f *Framework) GetServiceAccount(saName, namespace string) (*corev1.ServiceAccount, error) {
@@ -36,13 +39,26 @@ func (f *Framework) WaitServiceAccountReady(saName, namespace string, timeout ti
 	for {
 		select {
 		default:
-			as, _ := f.GetServiceAccount(saName, namespace)
+			as, err := f.GetServiceAccount(saName, namespace)
+			b := api_errors.IsNotFound(err)
+			if b {
+				f.Log("service account: %s/%s not found", namespace, saName)
+				time.Sleep(time.Second)
+				continue
+			}
+
+			if err != nil {
+				f.Log("failed to get service account, error %v ", err)
+				time.Sleep(time.Second)
+				continue
+			}
+
 			if as != nil {
 				return nil
 			}
-			time.Sleep(time.Second)
+
 		case <-ctx.Done():
-			return ErrTimeOut
+			return fmt.Errorf("%w: failed to wait for service account to be ready", ErrTimeOut)
 		}
 	}
 }

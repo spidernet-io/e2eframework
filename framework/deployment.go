@@ -270,7 +270,7 @@ func (f *Framework) RestartDeploymentPodUntilReady(deployName, namespace string,
 	if err != nil {
 		return err
 	}
-	_, err = f.DeletePodListUntilReady(podList, timeOut, opts...)
+	_, err = f.DeletePodListUntilReady(podList, int(*deployment.Spec.Replicas), timeOut, opts...)
 	if err != nil {
 		return err
 	}

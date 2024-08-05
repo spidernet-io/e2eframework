@@ -292,7 +292,7 @@ func (f *Framework) DeletePodListRepeatedly(label map[string]string, interval ti
 	}
 }
 
-func (f *Framework) DeletePodListUntilReady(podList *corev1.PodList, timeOut time.Duration, opts ...client.DeleteOption) (*corev1.PodList, error) {
+func (f *Framework) DeletePodListUntilReady(podList *corev1.PodList, expectedPodNum int, timeOut time.Duration, opts ...client.DeleteOption) (*corev1.PodList, error) {
 	if podList == nil {
 		return nil, ErrWrongInput
 	}
@@ -321,7 +321,7 @@ OUTER:
 			continue
 		}
 
-		if len(podListWithLabel.Items) != len(podList.Items) {
+		if len(podListWithLabel.Items) == 0 || len(podListWithLabel.Items) != expectedPodNum {
 			continue
 		}
 

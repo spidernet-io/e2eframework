@@ -259,4 +259,23 @@ var _ = Describe("test pod", Label("pod"), func() {
 		err11 := f.DeletePodUntilFinish(podName, "", ctx4, opts4)
 		Expect(err11).To(HaveOccurred())
 	})
+
+	Describe("DeletePodListByLabel", func() {
+
+		It("label is nil", func() {
+			err := f.DeletePodListByLabel(nil)
+			Expect(err).To(MatchError(e2e.ErrWrongInput))
+		})
+
+		It("succeed to delete PodList via label", func() {
+			pod := generateExamplePodYaml(podName, namespace, label, "Running")
+
+			// create pod
+			err := f.CreatePod(pod)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = f.DeletePodListByLabel(label)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
 })

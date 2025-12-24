@@ -27,9 +27,10 @@ type SpiderMultusConfigList struct {
 
 // MultusCNIConfigSpec defines the desired state of SpiderMultusConfig.
 type MultusCNIConfigSpec struct {
-	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=macvlan;ipvlan;sriov;ovs;custom
-	CniType string `json:"cniType"`
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Enum=macvlan;ipvlan;sriov;ovs;ib-sriov;ipoib;custom
+	// +kubebuilder:default=custom
+	CniType *string `json:"cniType,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	MacvlanConfig *SpiderMacvlanCniConfig `json:"macvlan,omitempty"`
@@ -43,6 +44,13 @@ type MultusCNIConfigSpec struct {
 	// +kubebuilder:validation:Optional
 	OvsConfig *SpiderOvsCniConfig `json:"ovs,omitempty"`
 
+	// +kubebuilder:validation:Optional
+	IbSriovConfig *SpiderIBSriovCniConfig `json:"ibsriov,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	IpoibConfig *SpiderIpoibCniConfig `json:"ipoib,omitempty"`
+
+	// if CniType was set to custom, we'll mutate this field to be false
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
 	EnableCoordinator *bool `json:"enableCoordinator,omitempty"`
@@ -53,6 +61,11 @@ type MultusCNIConfigSpec struct {
 
 	// +kubebuilder:validation:Optional
 	CoordinatorConfig *CoordinatorSpec `json:"coordinator,omitempty"`
+
+	// ChainCNIJsonData is used to configure the configuration of chain CNI.
+	// format in json.
+	// +kubebuilder:validation:Optional
+	ChainCNIJsonData []string `json:"chainCNIJsonData"`
 
 	// OtherCniTypeConfig only used for CniType custom, valid json format, can be empty
 	// +kubebuilder:validation:Optional
@@ -111,6 +124,38 @@ type SpiderSRIOVCniConfig struct {
 	// +kubebuilder:default=false
 	// +kubebuilder:validation:Optional
 	EnableRdma bool `json:"enableRdma"`
+
+	// +kubebuilder:validation:Optional
+	SpiderpoolConfigPools *SpiderpoolPools `json:"ippools,omitempty"`
+}
+
+type SpiderIBSriovCniConfig struct {
+	// +kubebuilder:validation:Required
+	ResourceName string `json:"resourceName"`
+
+	// +kubebuilder:validation:Optional
+	Pkey *string `json:"pkey,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=enable
+	// +kubebuilder:validation:Enum=auto;enable;disable
+	LinkState *string `json:"linkState,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=true
+	RdmaIsolation *bool `json:"rdmaIsolation,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=false
+	IbKubernetesEnabled *bool `json:"ibKubernetesEnabled,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	SpiderpoolConfigPools *SpiderpoolPools `json:"ippools,omitempty"`
+}
+
+type SpiderIpoibCniConfig struct {
+	// +kubebuilder:validation:Required
+	Master string `json:"master,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	SpiderpoolConfigPools *SpiderpoolPools `json:"ippools,omitempty"`

@@ -33,6 +33,7 @@ const (
 	KindCronJob     = "CronJob"
 	KindKubevirtVM  = "VirtualMachine"
 	KindKubevirtVMI = "VirtualMachineInstance"
+	KindServiceCIDR = "ServiceCIDR"
 )
 
 var K8sKinds = []string{KindPod, KindDeployment, KindReplicaSet, KindDaemonSet, KindStatefulSet, KindJob, KindCronJob}
@@ -152,6 +153,10 @@ const (
 	MacvlanCNI = "macvlan"
 	IPVlanCNI  = "ipvlan"
 	SriovCNI   = "sriov"
+	IBSriovCNI = "ib-sriov"
+	IPoIBCNI   = "ipoib"
 	OvsCNI     = "ovs"
 	CustomCNI  = "custom"
 )
+
+const WebhookMutateRoute = "/webhook-health-check"

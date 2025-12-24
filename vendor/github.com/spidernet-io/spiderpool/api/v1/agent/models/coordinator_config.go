@@ -31,9 +31,6 @@ type CoordinatorConfig struct {
 	// hijack c ID r
 	HijackCIDR []string `json:"hijackCIDR"`
 
-	// host r p filter
-	HostRPFilter int64 `json:"hostRPFilter,omitempty"`
-
 	// host rule table
 	HostRuleTable int64 `json:"hostRuleTable,omitempty"`
 
@@ -51,8 +48,8 @@ type CoordinatorConfig struct {
 	// pod m a c prefix
 	PodMACPrefix string `json:"podMACPrefix,omitempty"`
 
-	// pod n i cs
-	PodNICs []string `json:"podNICs"`
+	// pod r p filter
+	PodRPFilter int64 `json:"podRPFilter,omitempty"`
 
 	// service c ID r
 	// Required: true
@@ -61,6 +58,12 @@ type CoordinatorConfig struct {
 	// tune pod routes
 	// Required: true
 	TunePodRoutes *bool `json:"tunePodRoutes"`
+
+	// tx queue len
+	TxQueueLen int64 `json:"txQueueLen,omitempty"`
+
+	// veth link address
+	VethLinkAddress string `json:"vethLinkAddress,omitempty"`
 }
 
 // Validate validates this coordinator config

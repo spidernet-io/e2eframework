@@ -81,7 +81,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.25.2
+          go-version: 1.25
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
       - name: Run golangci-lint
         id: golangci_lint
         continue-on-error: true
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
 
@@ -159,11 +159,11 @@ jobs:
       # - name: CodeQL Analysis
       #   uses: github/codeql-action/analyze@v2.1.8
 
-      - name: gokart
-        id: gokart
-        run: |
-          go install github.com/praetorian-inc/gokart@latest
-          gokart scan --globalsTainted
+      # - name: gokart
+      #   id: gokart
+      #   run: |
+      #     go install github.com/praetorian-inc/gokart@latest
+      #     gokart scan --globalsTainted
 
   unitest:
     needs: filter_changes

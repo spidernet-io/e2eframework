@@ -107,3 +107,26 @@ type AutoPoolProperty struct {
 	// AnnoPoolIPNumberVal serves for AutoPool annotation to explain whether it is IP number flexible or fixed.
 	AnnoPoolIPNumberVal string
 }
+
+type SpiderpoolConfigmapConfig struct {
+	EnableIPv4                                    bool                    `yaml:"enableIPv4"`
+	EnableIPv6                                    bool                    `yaml:"enableIPv6"`
+	TuneSysctlConfig                              bool                    `yaml:"tuneSysctlConfig"`
+	EnableStatefulSet                             bool                    `yaml:"enableStatefulSet"`
+	EnableKubevirtStaticIP                        bool                    `yaml:"enableKubevirtStaticIP"`
+	EnableSpiderSubnet                            bool                    `yaml:"enableSpiderSubnet"`
+	EnableAutoPoolForApplication                  bool                    `yaml:"enableAutoPoolForApplication"`
+	EnableCleanOutdatedEndpoint                   bool                    `yaml:"enableCleanOutdatedEndpoint"`
+	EnableIPConflictDetection                     bool                    `yaml:"enableIPConflictDetection"`
+	EnableGatewayDetection                        bool                    `yaml:"enableGatewayDetection"`
+	ClusterSubnetAutoPoolDefaultRedundantIPNumber int                     `yaml:"clusterSubnetAutoPoolDefaultRedundantIPNumber"`
+	EnableValidatingResourcesDeletedWebhook       bool                    `yaml:"enableValidatingResourcesDeletedWebhook"`
+	IpamUnixSocketPath                            string                  `yaml:"ipamUnixSocketPath"`
+	PodResourceInjectConfig                       PodResourceInjectConfig `yaml:"podResourceInject"`
+}
+
+type PodResourceInjectConfig struct {
+	Enabled           bool     `yaml:"enabled"`
+	NamespacesExclude []string `yaml:"namespacesExclude"`
+	NamespacesInclude []string `yaml:"namespacesInclude"`
+}

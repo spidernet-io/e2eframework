@@ -45,21 +45,21 @@ func createNode(f *e2e.Framework, node *corev1.Node, opts ...client.CreateOption
 	fake := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 
-			Name: node.ObjectMeta.Name,
+			Name: node.Name,
 		},
 	}
 	key := client.ObjectKeyFromObject(fake)
 	existing := &corev1.Node{}
 	e := f.GetResource(key, existing)
-	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same node %v exists", node.ObjectMeta.Name)
+	if e == nil && existing.DeletionTimestamp == nil {
+		return fmt.Errorf("failed to create , a same node %v exists", node.Name)
 	} else {
 		t := func() bool {
 			existing := &corev1.Node{}
 			e := f.GetResource(key, existing)
 			b := api_errors.IsNotFound(e)
 			if !b {
-				f.Log("waiting for a same node %v/%v to finish deleting \n", node.ObjectMeta.Name)
+				f.Log("waiting for a same node %v/%v to finish deleting \n", node.Name)
 				return false
 			}
 			return true

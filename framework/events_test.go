@@ -44,22 +44,22 @@ func generateExampleEventYaml(eventKind, objName, objnamespace, message string) 
 func CreateEvent(f *e2e.Framework, event *corev1.Event, opts ...client.CreateOption) error {
 	fake := &corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: event.ObjectMeta.Namespace,
-			Name:      event.ObjectMeta.Name,
+			Namespace: event.Namespace,
+			Name:      event.Name,
 		},
 	}
 	key := client.ObjectKeyFromObject(fake)
 	existing := &corev1.Event{}
 	e := f.GetResource(key, existing)
-	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same event %v exists", event.ObjectMeta.Name)
+	if e == nil && existing.DeletionTimestamp == nil {
+		return fmt.Errorf("failed to create , a same event %v exists", event.Name)
 	}
 	t := func() bool {
 		existing := &corev1.Event{}
 		e := f.GetResource(key, existing)
 		b := api_errors.IsNotFound(e)
 		if !b {
-			f.Log("waiting for a same event %v/%v to finish deleting \n", event.ObjectMeta.Name, event.ObjectMeta.Namespace)
+			f.Log("waiting for a same event %v/%v to finish deleting \n", event.Name, event.Namespace)
 			return false
 		}
 		return true

@@ -1,8 +1,42 @@
-# Options for analysis running.
+version: "2"
+
+linters:
+  exclusions:
+    paths:
+      - scripts
+      - framework/endpoint.go
+      - '.*_test\\.go$'
+  settings:
+    errcheck:
+      # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
+      # Such cases aren't reported by default.
+      # Default: false
+      check-type-assertions: false
+      # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`.
+      # Such cases aren't reported by default.
+      # Default: false
+      check-blank: false
+      # To disable the errcheck built-in exclude list.
+      # See `-excludeonly` option in https://github.com/kisielk/errcheck#excluding-functions for details.
+      # Default: false
+      disable-default-exclusions: true
+      # List of functions to exclude from checking, where each entry is a single function to exclude.
+      # See https://github.com/kisielk/errcheck#excluding-functions for details.
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+        - os.Setenv
+        - os.Remove
+      # Display function signature instead of selector.
+      # Default: false
+      verbose: true
+
+formatters:
+  exclusions:
+    paths:
+      - scripts
 run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 5m
-
-  skip-dirs:
-    - scripts

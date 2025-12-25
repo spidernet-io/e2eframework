@@ -51,7 +51,10 @@ const (
 )
 
 const (
-	AnnotationPre = "ipam.spidernet.io"
+	// DEPRETED, Maintain backward compatibility, don't remove it.
+	// and all new annotations use spidernet.io
+	AnnotationPre    = "ipam.spidernet.io"
+	CNIAnnotationPre = "cni.spidernet.io"
 
 	AnnoPodIPPool       = AnnotationPre + "/ippool"
 	AnnoPodIPPools      = AnnotationPre + "/ippools"
@@ -96,6 +99,15 @@ const (
 
 	// Coordinator
 	AnnoDefaultRouteInterface = AnnotationPre + "/default-route-nic"
+
+	//dra
+	DraAnnotationPre  = "dra.spidernet.io"
+	AnnoDraCdiVersion = AnnotationPre + "/cdi-version"
+
+	// webhook
+	PodMutatingWebhookName    = "pods.spiderpool.spidernet.io"
+	AnnoPodResourceInject     = CNIAnnotationPre + "/rdma-resource-inject"
+	AnnoNetworkResourceInject = CNIAnnotationPre + "/network-resource-inject"
 )
 
 const (
@@ -107,15 +119,16 @@ const (
 )
 
 const (
-	SpiderFinalizer        = SpiderpoolAPIGroup
-	SpiderpoolAPIGroup     = "spiderpool.spidernet.io"
-	SpiderpoolAPIVersion   = "v2beta1"
-	KindSpiderSubnet       = "SpiderSubnet"
-	KindSpiderIPPool       = "SpiderIPPool"
-	KindSpiderEndpoint     = "SpiderEndpoint"
-	KindSpiderReservedIP   = "SpiderReservedIP"
-	KindSpiderCoordinator  = "SpiderCoordinator"
-	KindSpiderMultusConfig = "SpiderMultusConfig"
+	SpiderFinalizer          = SpiderpoolAPIGroup
+	SpiderpoolAPIGroup       = "spiderpool.spidernet.io"
+	SpiderpoolAPIVersion     = "v2beta1"
+	KindSpiderSubnet         = "SpiderSubnet"
+	KindSpiderIPPool         = "SpiderIPPool"
+	KindSpiderEndpoint       = "SpiderEndpoint"
+	KindSpiderReservedIP     = "SpiderReservedIP"
+	KindSpiderCoordinator    = "SpiderCoordinator"
+	KindSpiderMultusConfig   = "SpiderMultusConfig"
+	KindSpiderClaimParameter = "SpiderClaimParameter"
 )
 
 const (
@@ -145,6 +158,7 @@ const ClusterDefaultInterfaceName = "eth0"
 const (
 	MultusDefaultNetAnnot        = "v1.multus-cni.io/default-network"
 	MultusNetworkAttachmentAnnot = "k8s.v1.cni.cncf.io/networks"
+	MultusNetworkStatus          = "k8s.v1.cni.cncf.io/network-status"
 	ResourceNameAnnot            = "k8s.v1.cni.cncf.io/resourceName"
 	ResourceNameOvsCniValue      = "ovs-cni.network.kubevirt.io"
 )
@@ -157,6 +171,43 @@ const (
 	IPoIBCNI   = "ipoib"
 	OvsCNI     = "ovs"
 	CustomCNI  = "custom"
+	TuningCNI  = "tuning"
 )
 
 const WebhookMutateRoute = "/webhook-health-check"
+
+// CRD field
+const (
+	SpecIPVersionField = "spec.ipVersion"
+	SpecDefaultField   = "spec.default"
+)
+
+const (
+	Str4 = "4"
+	Str6 = "6"
+)
+
+// dra-related
+const (
+	DRACDIVendor              = "k8s." + DRADriverName
+	DRACDIClass               = "claim"
+	DRACDIKind                = DRACDIVendor + "/" + DRACDIClass
+	DRADriverName             = "netresources.spidernet.io"
+	DRAPluginRegistrationPath = "/var/lib/kubelet/plugins_registry/" + DRADriverName + ".sock"
+	DRADriverPluginPath       = "/var/lib/kubelet/plugins/" + DRADriverName
+	DRADriverPluginSocketPath = DRADriverPluginPath + "/plugin.sock"
+)
+
+// spiderpool cleaning sriov
+const (
+	SriovNetworkOperatorAPIGroup                 = "sriovnetwork.openshift.io"
+	SriovOperatorWebhookConfigMutatingOrValidate = "sriov-operator-webhook-config"
+	SriovNetworkResourcesInjectorMutating        = "network-resources-injector-config"
+	SriovNetworkOperatorConfigs                  = "sriovoperatorconfigs.sriovnetwork.openshift.io"
+)
+
+// webhook Mutating or Validating Configuration
+const (
+	MutatingWebhookConfiguration   = "MutatingWebhookConfiguration"
+	ValidatingWebhookConfiguration = "ValidatingWebhookConfiguration"
+)

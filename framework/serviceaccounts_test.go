@@ -62,22 +62,22 @@ func CreateServiceAccount(f *e2e.Framework, serviceaccount *corev1.ServiceAccoun
 	// try to wait for finish last deleting
 	fake := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: serviceaccount.ObjectMeta.Namespace,
-			Name:      serviceaccount.ObjectMeta.Name,
+			Namespace: serviceaccount.Namespace,
+			Name:      serviceaccount.Name,
 		},
 	}
 	key := client.ObjectKeyFromObject(fake)
 	existing := &corev1.Pod{}
 	e := f.GetResource(key, existing)
-	if e == nil && existing.ObjectMeta.DeletionTimestamp == nil {
-		return fmt.Errorf("failed to create , a same serviceaccount %v/%v exists", serviceaccount.ObjectMeta.Namespace, serviceaccount.ObjectMeta.Name)
+	if e == nil && existing.DeletionTimestamp == nil {
+		return fmt.Errorf("failed to create , a same serviceaccount %v/%v exists", serviceaccount.Namespace, serviceaccount.Name)
 	} else {
 		t := func() bool {
 			existing := &corev1.ServiceAccount{}
 			e := f.GetResource(key, existing)
 			b := api_errors.IsNotFound(e)
 			if !b {
-				f.Log("waiting for a same serviceaccount %v/%v to finish deleting \n", serviceaccount.ObjectMeta.Namespace, serviceaccount.ObjectMeta.Name)
+				f.Log("waiting for a same serviceaccount %v/%v to finish deleting \n", serviceaccount.Namespace, serviceaccount.Name)
 				return false
 			}
 			return true

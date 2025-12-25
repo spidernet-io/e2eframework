@@ -83,11 +83,11 @@ unitest-tests:
 	@echo "run unitest-tests"
 	docker images
 	$(QUIET) $(ROOT_DIR)/scripts/ginkgo.sh   \
-		--cover --coverprofile=./coverage.out --covermode set  \
+		--cover --coverprofile=coverage.out --covermode set  \
 		--json-report unitestreport.json \
 		-randomize-suites -randomize-all --keep-going  --timeout=1h  -p   --slow-spec-threshold=120s \
 		-vv  -r  ./framework
-	$(QUIET) go tool cover -html=./coverage.out -o coverage-all.html
+	$(QUIET) go tool cover -html=coverage.out -o coverage-all.html
 
 
 .PHONY: check_test_label

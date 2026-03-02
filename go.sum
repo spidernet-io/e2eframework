@@ -132,8 +132,8 @@ github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0t
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/spf13/pflag v1.0.9 h1:9exaQaMOCwffKiiiYk6/BndUBv+iRViNW+4lEMi0PvY=
 github.com/spf13/pflag v1.0.9/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/spidernet-io/spiderpool v1.1.0 h1:Mp6RM3279xcEtv8ZQ14tsob9jStLCWO3vV1p2CQeCyk=
-github.com/spidernet-io/spiderpool v1.1.0/go.mod h1:nc8U0E6hpscdDrKiZTeHKqaa16Kp7yIL5M+w13xf7fE=
+github.com/spidernet-io/spiderpool v1.1.1 h1:5CLmi0PNxDTx100dWyDl/DviZlKYMKBf1VnMmz3oOuc=
+github.com/spidernet-io/spiderpool v1.1.1/go.mod h1:nc8U0E6hpscdDrKiZTeHKqaa16Kp7yIL5M+w13xf7fE=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
